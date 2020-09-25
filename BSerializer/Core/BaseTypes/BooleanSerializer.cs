@@ -5,6 +5,10 @@
         private const string TRUE = "1";
         private const string FALSE = "0";
 
+        public override string EmptySymbol => FALSE;
+
+        public override object EmptyValue => false;
+
         public override bool Deserialize(string s)
         {
             return s.Equals(TRUE) ? true : false;

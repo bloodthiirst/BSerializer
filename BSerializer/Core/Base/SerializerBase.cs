@@ -7,13 +7,24 @@ namespace BSerializer
         private static readonly Type InternalType = typeof(T);
         public Type Type => InternalType;
 
+        public abstract string EmptySymbol { get; }
+        public abstract object EmptyValue { get; }
+
         object ISerializer.Deserialize(string s)
         {
+            if(s.Equals(EmptySymbol))
+            {
+                return EmptyValue;
+            }
+
             return Deserialize(s);
         }
 
         string ISerializer.Serialize(object obj)
         {
+            if (obj.Equals(EmptyValue))
+                return EmptySymbol;
+
             return Serialize((T)obj);
         }
         bool ISerializer.TrySerialize(object obj, ref string s)

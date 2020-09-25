@@ -1,4 +1,5 @@
-﻿using BSerializer.Core.Collection;
+﻿using BSerializer.BaseTypes;
+using BSerializer.Core.Collection;
 using BSerializer.Core.Custom;
 using BSerializer.Core.Parser.SerializationNodes;
 using ConsoleUI.Model;
@@ -12,15 +13,21 @@ namespace ConsoleUI
         static void Main(string[] args)
         {
             SerializerCollection collection = new SerializerCollection();
+            collection.Serializers.Add(typeof(bool), new BooleanSerializer());
+            collection.Serializers.Add(typeof(float), new FloatSerializer());
+            collection.Serializers.Add(typeof(string), new StringSerializer());
+            collection.Serializers.Add(typeof(int), new IntSerializer());
+            collection.Serializers.Add(typeof(double), new DoubleSerializer());
+
             CustomSerializer customSerializer = new CustomSerializer(typeof(Person), collection);
 
-            MainParser parser = new MainParser();
+            string data = "{ 1 , Houssem , ASSAL , null }";
 
-            string data = "{ SomeData, { Child , otherData , 3 } , Bloodthirst }";
+            GenericSerializer<Person> serializer = new GenericSerializer<Person>(collection);
 
-            IList<INodeData> nodes = null;
-            
-            parser.ExtractNodeData(data, out nodes);
+
+            var person = serializer.Deserialize(data);
+            var text = serializer.Serialize(person);
         }
     }
 }

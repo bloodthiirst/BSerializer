@@ -2,6 +2,12 @@
 {
     public class IntSerializer : SerializerBase<int>
     {
+        private const string EMPTy = "0";
+
+        public override string EmptySymbol => EMPTy;
+
+        public override object EmptyValue => 0;
+
         public override int Deserialize(string s)
         {
             return int.Parse(s);

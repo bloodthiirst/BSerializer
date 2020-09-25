@@ -2,6 +2,12 @@
 {
     public class DoubleSerializer : SerializerBase<double>
     {
+        private const string EMPTY = "0";
+
+        public override string EmptySymbol => EMPTY;
+
+        public override object EmptyValue => 0;
+
         public override double Deserialize(string s)
         {
             return double.Parse(s);

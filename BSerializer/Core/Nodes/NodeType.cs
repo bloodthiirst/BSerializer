@@ -5,6 +5,7 @@
         COMMENT,
         DATA,
         OBJECT,
+        ARRAY,
         SYMBOL
     }
 }

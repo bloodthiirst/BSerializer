@@ -2,6 +2,12 @@
 {
     public class FloatSerializer : SerializerBase<float>
     {
+        private const string EMPTY = "0";
+
+        public override string EmptySymbol => EMPTY;
+
+        public override object EmptyValue => 0;
+
         public override float Deserialize(string s)
         {
             return float.Parse(s);

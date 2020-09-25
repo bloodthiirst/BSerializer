@@ -5,9 +5,9 @@ namespace BSerializer.Core.Parser
 {
     public class ObjectNodeParser : INodeParser
     {
-        private const string START_SYMBOL = "[";
-        private const string END_SYMBOL = "]";
-        private static readonly NodeType serializationNodeType = NodeType.ARRAY;
+        private const string START_SYMBOL = "{";
+        private const string END_SYMBOL = "}";
+        private static readonly NodeType serializationNodeType = NodeType.OBJECT;
         public NodeType NodeType => serializationNodeType;
 
         public bool IsValid(string data, out IList<INodeData> nodeDatas, int position)

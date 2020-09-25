@@ -9,5 +9,8 @@ namespace BSerializer
         string Serialize(object obj);
         bool TryDeserialize(string s, ref object obj);
         bool TrySerialize(object obj, ref string s);
+
+        string EmptySymbol { get; }
+        object EmptyValue { get; }
     }
 }
