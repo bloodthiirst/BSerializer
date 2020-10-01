@@ -4,8 +4,8 @@ using System.Text;
 
 namespace BSerializer.Core.Parser
 {
-    public static class SerializerConsts
+    public interface IParserNoSeparator
     {
-        public static readonly char DATA_SEPARATOR = ',';
+        bool Validate(string data);
     }
 }

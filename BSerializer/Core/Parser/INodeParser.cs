@@ -7,6 +7,10 @@ namespace BSerializer.Core.Parser
 {
     public interface INodeParser
     {
-        bool IsValid(string data , out IList<INodeData> nodeData , int position);
+        string WrappingStart { get; }
+        string WrappingEnd { get; }
+        bool HasWrapping { get; }
+        bool NeedsSeparation { get; }
+        bool IsValid(string data , out IList<INodeData> nodeData , int position , out string patchedData);
     }
 }

@@ -21,13 +21,27 @@ namespace ConsoleUI
 
             CustomSerializer customSerializer = new CustomSerializer(typeof(Person), collection);
 
-            string data = "{ 1 , Houssem , ASSAL , null }";
+            string data = "{ " +
+                "<Person>"+
+                "# this is a comment #"+
+                "# this is a comment #" +
+                "1 , " +
+                "Houssem , " +
+                "ASSAL , " +
+                "null " +
+                "}";
 
             GenericSerializer<Person> serializer = new GenericSerializer<Person>(collection);
+            GenericSerializer<IPerson> serializerInterface = new GenericSerializer<IPerson>(collection);
 
+            var person = new Person() { Id = 123, FirstName = "Bloodthirst",LastName ="Ketsueki" , Address = "Some place", Parent = null };
 
-            var person = serializer.Deserialize(data);
-            var text = serializer.Serialize(person);
+            string interfaceSerialized = serializerInterface.Serialize(person);
+            IPerson interfaceDiserialized = serializerInterface.Deserialize(interfaceSerialized);
+
+            string serialized = serializer.Serialize(person);
+            Person deserialized = serializer.Deserialize(serialized);
+
         }
     }
 }

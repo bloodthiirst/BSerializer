@@ -11,7 +11,14 @@ namespace BSerializer.Core.Nodes
         {
             NodeType.COMMENT,
             NodeType.DATA,
+            NodeType.METADATA,
             NodeType.SYMBOL
+        };
+
+        private static NodeType[] IgnoredOnDeserialization = new NodeType[]
+        {
+            NodeType.COMMENT,
+            NodeType.METADATA
         };
 
 
@@ -20,6 +27,19 @@ namespace BSerializer.Core.Nodes
             for(int i = 0; i < TerminalNodeType.Length;i++)
             {
                 if(TerminalNodeType[i] == nodeType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IgnoreOnDeserialization(NodeType nodeType)
+        {
+            for (int i = 0; i < IgnoredOnDeserialization.Length; i++)
+            {
+                if (IgnoredOnDeserialization[i] == nodeType)
                 {
                     return true;
                 }

@@ -1,4 +1,5 @@
 ﻿using BSerializer.Core.Parser.SerializationNodes;
+using Library.Extractors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,13 +7,13 @@ using System.Text;
 
 namespace BSerializer.Core.Parser
 {
-    public class CommentNodeParser : INodeParser , IParserNoSeparator
+    public class MetadataNodeParser : INodeParser , IParserNoSeparator
     {
-        private const string START_SYMBOL = "#";
-        private const string END_SYMBOL = "#";
+        private const string START_SYMBOL = "<";
+        private const string END_SYMBOL = ">";
         private readonly int START_LENGTH = START_SYMBOL.Length;
         private readonly int END_LENGTH = END_SYMBOL.Length;
-        private static readonly NodeType serializationNodeType = NodeType.COMMENT;
+        private static readonly NodeType serializationNodeType = NodeType.METADATA;
         public NodeType NodeType => serializationNodeType;
         public string WrappingStart => START_SYMBOL;
 
@@ -68,12 +69,17 @@ namespace BSerializer.Core.Parser
 
             nodeDatas = new List<INodeData>(1);
 
-            INodeData symbolStart = new NodeDataBase(NodeType.COMMENT, START_SYMBOL, position);
+            INodeData symbolStart = new NodeDataBase(NodeType.SYMBOL, START_SYMBOL, position);
             INodeData nodeData = new NodeDataBase(NodeType, content, position);
-            INodeData symbolEnd = new NodeDataBase(NodeType.COMMENT, END_SYMBOL, position);
+            INodeData symbolEnd = new NodeDataBase(NodeType.SYMBOL, END_SYMBOL, position);
 
             patched = data.Substring(0, startIndex - 1);
-            patched += data.Substring(endIndex + 1 , data.Length - endIndex - 1); 
+            patched += data.Substring(endIndex + 1 , data.Length - endIndex - 1);
+
+            MainParser mainParser = new MainParser();
+            IList<INodeData> list;
+            mainParser.ExtractNodeData(content, out list);
+            nodeData.SubNodes.AddRange(list);
 
             obj.SubNodes.Add(symbolStart);
             obj.SubNodes.Add(nodeData);

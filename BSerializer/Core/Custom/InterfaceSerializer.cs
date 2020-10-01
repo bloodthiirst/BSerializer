@@ -11,7 +11,7 @@ using System.Text;
 
 namespace BSerializer.Core.Custom
 {
-    public class CustomSerializer : ISerializer
+    public class InterfaceSerializer : ISerializer
     {
         private const string NULL = "null";
 
@@ -21,21 +21,10 @@ namespace BSerializer.Core.Custom
         private IList<Action<object,object>> PropertieSetter { get; set; }
         private IList<Func<object, object>> PropertieGetter { get; set; }
         private int PropertiesCount { get; set; }
-        public CustomSerializer(Type customType , ISerializerCollection serializerCollection)
+        public InterfaceSerializer(Type customType , ISerializerCollection serializerCollection)
         {
             CustomType = customType;
             SerializerCollection = serializerCollection;
-
-            Serializers = new List<ISerializer>();
-            PropertieSetter = new List<Action<object, object>>();
-            PropertieGetter = new List<Func<object, object>>();
-
-            if(!SerializerCollection.Serializers.ContainsKey(CustomType))
-            {
-                SerializerCollection.Serializers.Add(CustomType, this);
-            }
-
-            Initialize();
         }
 
         public Type Type => CustomType;
@@ -44,42 +33,8 @@ namespace BSerializer.Core.Custom
 
         public object EmptyValue => null;
 
-        private List<PropertyInfo> GetSerializableProperties(Type type)
-        {
-            return type
-                .GetProperties()
-                .Where(p => p.GetAccessors().Length == 2)
-                .ToList();
-        }
-
-        private void Initialize()
-        {
-            // get properties
-            List<PropertyInfo> props = GetSerializableProperties(CustomType);
-
-            PropertiesCount = props.Count;
-
-            for (int i = 0; i < props.Count; i++)
-            {
-                PropertyInfo prop = props[i];
-                Func<object, object> getter = SerializerUtils.GetterToDelegate(prop.GetMethod);
-                Action<object, object> setter = SerializerUtils.SetterToDelegate(prop.SetMethod);
-                ISerializer serializer = SerializerCollection.Serializers[prop.PropertyType];
-
-                PropertieGetter.Add(getter);
-                PropertieSetter.Add(setter);
-                Serializers.Add(serializer);
-            }
-        }
-
         private bool CanDeserialize(IList<INodeData> nodes , out Type type)
         {
-            if (nodes.Count != 1)
-            {
-                type = null;
-                return false;
-            }
-            
             if(nodes[0].Type != NodeType.OBJECT)
             {
                 type = null;
@@ -87,12 +42,6 @@ namespace BSerializer.Core.Custom
             }
 
             List<INodeData> validNodes = nodes[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
-
-            if (validNodes.Count != PropertiesCount)
-            {
-                type = null;
-                return false;
-            }
 
             INodeData typeNode = nodes[0].SubNodes[1].SubNodes.FirstOrDefault(n => n.Type == NodeType.METADATA);
 
@@ -155,40 +104,17 @@ namespace BSerializer.Core.Custom
                 return EmptyValue;
             }
 
-            return DeserializeFromNodes(list);
+            ISerializer concreteSerializer = SerializerCollection.Serializers[instanceType];
+
+            return ((CustomSerializer)concreteSerializer).DeserializeFromNodes(list);
 
         }
 
         public string Serialize(object obj)
         {
-            if (obj == null)
-                return EmptySymbol;
+            var concreteType = obj.GetType();
 
-            if (obj.Equals(EmptyValue))
-                return EmptySymbol;
-
-            StringBuilder sb = new StringBuilder();
-
-            ObjectNodeParser objectNodeParser = new ObjectNodeParser();
-
-            sb.Append(objectNodeParser.WrappingStart);
-            sb.Append("<");
-            sb.Append(CustomType.FullName);
-            sb.Append(">");
-
-            for(int i = 0; i < PropertiesCount - 1;i++)
-            {
-                object val = PropertieGetter[i].Invoke(obj);
-                string valAsString = Serializers[i].Serialize(val);
-                sb.Append(valAsString);
-                sb.Append( SerializerConsts.DATA_SEPARATOR );
-            }
-            object lastVal = PropertieGetter[PropertiesCount - 1].Invoke(obj);
-            string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal);
-            sb.Append(lastValAsString);
-            sb.Append(objectNodeParser.WrappingEnd);
-
-            return sb.ToString();
+            return SerializerCollection.Serializers[concreteType].Serialize(obj);
         }
 
         public bool TryDeserialize(string s, ref object obj)

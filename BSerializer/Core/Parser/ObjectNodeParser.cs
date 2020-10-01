@@ -1,40 +1,55 @@
 ﻿using BSerializer.Core.Parser.SerializationNodes;
 using System.Collections.Generic;
+using System.IO;
 
 namespace BSerializer.Core.Parser
 {
     public class ObjectNodeParser : INodeParser
     {
-        private const string START_SYMBOL = "[";
-        private const string END_SYMBOL = "]";
-        private static readonly NodeType serializationNodeType = NodeType.ARRAY;
-        public NodeType NodeType => serializationNodeType;
+        private const string START_SYMBOL = "{";
+        private const string END_SYMBOL = "}";
+        private readonly int START_LENGTH = START_SYMBOL.Length;
+        private readonly int END_LENGTH = END_SYMBOL.Length;
 
-        public bool IsValid(string data, out IList<INodeData> nodeDatas, int position)
+        private static readonly NodeType serializationNodeType = NodeType.OBJECT;
+        public NodeType NodeType => serializationNodeType;
+        public string WrappingStart => START_SYMBOL;
+
+        public string WrappingEnd => END_SYMBOL;
+
+        public bool HasWrapping => true;
+
+        public bool NeedsSeparation => true;
+
+        public bool IsValid(string data, out IList<INodeData> nodeDatas, int position, out string patched)
         {
             if(string.IsNullOrEmpty(data))
             {
+                patched = data;
                 nodeDatas = null;
                 return false;
             }
-            if(data.Length < 2)
+            if(data.Length < (START_LENGTH + END_LENGTH))
             {
+                patched = data;
                 nodeDatas = null;
                 return false;
             }
-            if (data[0] != '{')
+            if (!data.StartsWith(START_SYMBOL))
             {
+                patched = data;
                 nodeDatas = null;
                 return false;
             }
-            if (data[data.Length - 1] != '}')
+            if (!data.EndsWith(END_SYMBOL))
             {
+                patched = data;
                 nodeDatas = null;
                 return false;
             }
 
 
-            var content = data.Substring(1, data.Length - 2);
+            var content = data.Substring(START_LENGTH, data.Length - (START_LENGTH + END_LENGTH));
 
             NodeDataBase obj = new NodeDataBase(NodeType, data, position);
 
@@ -50,7 +65,7 @@ namespace BSerializer.Core.Parser
             obj.SubNodes.Add(symbolEnd);
 
             nodeDatas.Add(obj);
-
+            patched = string.Empty;
             return true;
         }
     }

@@ -2,6 +2,7 @@
 using BSerializer.Core.Parser;
 using BSerializer.Core.Parser.SerializationNodes;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace Library.Extractors
@@ -10,31 +11,36 @@ namespace Library.Extractors
     {
         private IList<INodeParser> NodeParsers { get; }
         private IList<INodeParser> NodePrepocessor { get; }
+        private IList<IParserNoSeparator> NoSeparator { get; }
         private List<INodeData> NodeDatas { get; set; }
         private List<INodeData> PreprocessedNodeDatas { get; set; }
 
         private StringBuilder stringBuilder;
 
-        private Stack<char> Brackets;
+        private Stack<string> Brackets;
 
         public MainParser()
         {
             stringBuilder = new StringBuilder();
 
-            Brackets = new Stack<char>();
+            Brackets = new Stack<string>();
+
 
             NodeDatas = new List<INodeData>();
 
             PreprocessedNodeDatas = new List<INodeData>();
 
-            NodePrepocessor = new List<INodeParser>()
+            NoSeparator = new List<IParserNoSeparator>()
             {
-                new CommentNodeParser()
+                new CommentNodeParser(),
+                new MetadataNodeParser()
             };
 
             NodeParsers = new List<INodeParser>()
             {
                 new ObjectNodeParser(),
+                new MetadataNodeParser(),
+                new CommentNodeParser(),
                 new DataNodeParser()
             };
         }
@@ -51,13 +57,73 @@ namespace Library.Extractors
             for (int i = 0; i < data.Length; i++)
             {
                 char currentChar = data[i];
+                bool skip = false;
 
-                if (currentChar == ',' && Brackets.Count == 0)
+
+                // check for nodes that dont need separators
+                foreach (IParserNoSeparator noSep in NoSeparator)
+                {
+                    string prop = stringBuilder.ToString();
+
+                    if (noSep.Validate(prop) && Brackets.Count == 0)
+                    {
+                        ParserPass(i);
+                        break;
+                    }
+                }
+
+                // check for nodes that need separators
+                if (currentChar == SerializerConsts.DATA_SEPARATOR && Brackets.Count == 0)
                 {
                     ParserPass(i);
                     continue;
                 }
 
+
+
+                // check for nodes with wrappers
+                foreach(INodeParser withWrapping in NodeParsers)
+                {
+                    if (!withWrapping.HasWrapping)
+                        continue;
+
+                    if (i+1 >= withWrapping.WrappingStart.Length)
+                    {
+                        string lastChars = data.Substring(i, withWrapping.WrappingStart.Length);
+
+                        if (lastChars.Equals(withWrapping.WrappingStart))
+                        {
+                            Brackets.Push(withWrapping.WrappingStart);
+                            stringBuilder.Append(withWrapping.WrappingStart);
+                            skip = true;
+                            break;
+                        }
+                    }
+
+                    if (i+1 >= withWrapping.WrappingEnd.Length)
+                    {
+                        string lastChars = data.Substring(i, withWrapping.WrappingEnd.Length);
+
+                        if (lastChars.Equals(withWrapping.WrappingEnd))
+                        {
+                            if (Brackets.Peek().Equals(withWrapping.WrappingStart))
+                            {
+                                stringBuilder.Append(withWrapping.WrappingEnd);
+                                Brackets.Pop();
+                                skip = true;
+                                break;
+                            }
+                        }
+                    }
+
+                }
+
+
+                if (skip)
+                    continue;
+
+
+                /*
                 if(currentChar == '{')
                 {
                     Brackets.Push('{');
@@ -74,8 +140,9 @@ namespace Library.Extractors
                         continue;
                     }
                 }
+                */
 
-                if(currentChar == '\n' || currentChar == '\t')
+                if (currentChar == '\n' || currentChar == '\t')
                 {
                     continue;
                 }
@@ -110,14 +177,15 @@ namespace Library.Extractors
                 IList<INodeData> nodes = null;
 
                 int position = i - prop.Length;
+                
+                string patched;
 
-                if (parser.IsValid(prop, out nodes, position))
+                if (parser.IsValid(prop, out nodes, position , out patched))
                 {
-                    stringBuilder.Clear();
+                    stringBuilder = new StringBuilder(patched);
 
                     for (int n = 0; n < nodes.Count; n++)
                     {
-
                         NodeDatas.Add(nodes[n]);
 
                         foreach (var sub in nodes[n].SubNodes)
@@ -132,6 +200,21 @@ namespace Library.Extractors
                                 mainParser.ExtractNodeData(sub.Data, out subnodes);
                                 sub.SubNodes.AddRange(subnodes);
                             }
+                        }
+                    }
+
+                    // rest of the node
+                    if (patched.Length != 0)
+                    {
+                        var patchedParser = new MainParser();
+
+                        IList<INodeData> restOfNodes = null;
+
+                        patchedParser.ExtractNodeData(patched, out restOfNodes);
+                        
+                        foreach(var n in restOfNodes)
+                        {
+                            NodeDatas.Add(n);
                         }
                     }
 

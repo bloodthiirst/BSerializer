@@ -13,14 +13,23 @@ namespace BSerializer.Core.Custom
 
         public object EmptyValue => default(T);
 
-        private CustomSerializer customSerializer;
+        private ISerializer customSerializer;
 
         private ISerializer asInterface;
 
         public GenericSerializer(ISerializerCollection serializerCollection)
         {
-            customSerializer = new CustomSerializer(Type, serializerCollection);
-            asInterface = (ISerializer)this;
+            if (Type.IsInterface)
+            {
+                customSerializer = new InterfaceSerializer(Type, serializerCollection);
+            }
+            else
+            {
+                customSerializer = new CustomSerializer(Type, serializerCollection);
+            }
+
+            asInterface = this;
+            
         }
 
         public T Deserialize(string s)
@@ -28,7 +37,7 @@ namespace BSerializer.Core.Custom
             return (T) asInterface.Deserialize(s);
         }
 
-        public string Serialize<T>(T obj)
+        public string Serialize(T obj)
         {
             return asInterface.Serialize(obj);
         }

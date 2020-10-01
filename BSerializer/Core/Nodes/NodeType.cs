@@ -6,6 +6,7 @@
         DATA,
         OBJECT,
         ARRAY,
+        METADATA,
         SYMBOL
     }
 }
