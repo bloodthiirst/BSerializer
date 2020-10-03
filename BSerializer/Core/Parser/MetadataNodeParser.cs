@@ -70,7 +70,7 @@ namespace BSerializer.Core.Parser
             nodeDatas = new List<INodeData>(1);
 
             INodeData symbolStart = new NodeDataBase(NodeType.SYMBOL, START_SYMBOL, position);
-            INodeData nodeData = new NodeDataBase(NodeType, content, position);
+            INodeData nodeData = new NodeDataBase(NodeType.METADATA_CONTENT, content, position);
             INodeData symbolEnd = new NodeDataBase(NodeType.SYMBOL, END_SYMBOL, position);
 
             patched = data.Substring(0, startIndex - 1);

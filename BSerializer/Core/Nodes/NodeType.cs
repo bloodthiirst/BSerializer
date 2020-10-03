@@ -5,8 +5,10 @@
         COMMENT,
         DATA,
         OBJECT,
+        OBJECT_CONTENT,
         ARRAY,
         METADATA,
+        METADATA_CONTENT,
         SYMBOL
     }
 }

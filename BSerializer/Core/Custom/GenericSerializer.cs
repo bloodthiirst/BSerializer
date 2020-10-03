@@ -17,15 +17,15 @@ namespace BSerializer.Core.Custom
 
         private ISerializer asInterface;
 
-        public GenericSerializer(ISerializerCollection serializerCollection)
+        public GenericSerializer()
         {
             if (Type.IsInterface)
             {
-                customSerializer = new InterfaceSerializer(Type, serializerCollection);
+                customSerializer = new InterfaceSerializer(Type);
             }
             else
             {
-                customSerializer = new CustomSerializer(Type, serializerCollection);
+                customSerializer = new CustomSerializer(Type);
             }
 
             asInterface = this;

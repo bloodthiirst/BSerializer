@@ -1,4 +1,5 @@
-﻿using BSerializer.Core.Parser;
+﻿using BSerializer.Core.Custom;
+using BSerializer.Core.Parser;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,6 +8,8 @@ namespace BSerializer.Core.Nodes
 {
     public static class NodeUtils
     {
+        
+
         private static NodeType[] TerminalNodeType = new NodeType[]
         {
             NodeType.COMMENT,

@@ -1,4 +1,5 @@
-﻿using BSerializer.Core.Collection;
+﻿using BSerializer.Core.Base;
+using BSerializer.Core.Collection;
 using BSerializer.Core.Nodes;
 using BSerializer.Core.Parser;
 using BSerializer.Core.Parser.SerializationNodes;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BSerializer.Core.Custom
@@ -16,23 +18,21 @@ namespace BSerializer.Core.Custom
         private const string NULL = "null";
 
         public Type CustomType { get; }
-        private ISerializerCollection SerializerCollection { get; }
         private IList<ISerializer> Serializers { get; }
         private IList<Action<object,object>> PropertieSetter { get; set; }
         private IList<Func<object, object>> PropertieGetter { get; set; }
         private int PropertiesCount { get; set; }
-        public CustomSerializer(Type customType , ISerializerCollection serializerCollection)
+        public CustomSerializer(Type customType)
         {
             CustomType = customType;
-            SerializerCollection = serializerCollection;
 
             Serializers = new List<ISerializer>();
             PropertieSetter = new List<Action<object, object>>();
             PropertieGetter = new List<Func<object, object>>();
 
-            if(!SerializerCollection.Serializers.ContainsKey(CustomType))
+            if(! SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
             {
-                SerializerCollection.Serializers.Add(CustomType, this);
+                SerializerDependencies.SerializerCollection.Serializers.Add(CustomType, this);
             }
 
             Initialize();
@@ -64,7 +64,7 @@ namespace BSerializer.Core.Custom
                 PropertyInfo prop = props[i];
                 Func<object, object> getter = SerializerUtils.GetterToDelegate(prop.GetMethod);
                 Action<object, object> setter = SerializerUtils.SetterToDelegate(prop.SetMethod);
-                ISerializer serializer = SerializerCollection.Serializers[prop.PropertyType];
+                ISerializer serializer = SerializerDependencies.SerializerCollection.Serializers[prop.PropertyType];
 
                 PropertieGetter.Add(getter);
                 PropertieSetter.Add(setter);
@@ -98,7 +98,11 @@ namespace BSerializer.Core.Custom
 
             Type typeFromString = Assembly.GetEntryAssembly().GetType(typeNode.SubNodes[1].Data);
 
-            if(!CustomType.IsAssignableFrom(typeFromString))
+            CustomSerializer serializer = new CustomSerializer( typeof(Metadata));
+
+            Metadata metadata = (Metadata) serializer.DeserializeFromNodes(new List<INodeData>() { typeNode });
+
+            if (!CustomType.IsAssignableFrom(typeFromString))
             {
                 type = typeFromString;
                 return false;

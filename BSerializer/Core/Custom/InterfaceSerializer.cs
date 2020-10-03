@@ -1,4 +1,5 @@
-﻿using BSerializer.Core.Collection;
+﻿using BSerializer.Core.Base;
+using BSerializer.Core.Collection;
 using BSerializer.Core.Nodes;
 using BSerializer.Core.Parser;
 using BSerializer.Core.Parser.SerializationNodes;
@@ -16,15 +17,13 @@ namespace BSerializer.Core.Custom
         private const string NULL = "null";
 
         public Type CustomType { get; }
-        private ISerializerCollection SerializerCollection { get; }
         private IList<ISerializer> Serializers { get; }
         private IList<Action<object,object>> PropertieSetter { get; set; }
         private IList<Func<object, object>> PropertieGetter { get; set; }
         private int PropertiesCount { get; set; }
-        public InterfaceSerializer(Type customType , ISerializerCollection serializerCollection)
+        public InterfaceSerializer(Type customType )
         {
             CustomType = customType;
-            SerializerCollection = serializerCollection;
         }
 
         public Type Type => CustomType;
@@ -104,7 +103,7 @@ namespace BSerializer.Core.Custom
                 return EmptyValue;
             }
 
-            ISerializer concreteSerializer = SerializerCollection.Serializers[instanceType];
+            ISerializer concreteSerializer = SerializerDependencies.SerializerCollection.Serializers[instanceType];
 
             return ((CustomSerializer)concreteSerializer).DeserializeFromNodes(list);
 
@@ -114,7 +113,7 @@ namespace BSerializer.Core.Custom
         {
             var concreteType = obj.GetType();
 
-            return SerializerCollection.Serializers[concreteType].Serialize(obj);
+            return SerializerDependencies.SerializerCollection.Serializers[concreteType].Serialize(obj);
         }
 
         public bool TryDeserialize(string s, ref object obj)
