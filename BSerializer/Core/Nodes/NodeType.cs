@@ -7,6 +7,7 @@
         OBJECT,
         OBJECT_CONTENT,
         ARRAY,
+        ARRAY_CONTENT,
         METADATA,
         METADATA_CONTENT,
         SYMBOL

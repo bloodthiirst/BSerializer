@@ -16,14 +16,22 @@ namespace ConsoleUI
 
             GenericSerializer<Person> serializer = new GenericSerializer<Person>();
             GenericSerializer<IPerson> serializerInterface = new GenericSerializer<IPerson>();
+            ListSerializer listSerializer = new ListSerializer(typeof(List<Person>));
 
-            var person = new Person() { Id = 123, FirstName = "Bloodthirst",LastName ="Ketsueki" , Address = "Some place", Parent = null };
+            var person = new Person() { Id = 123, FirstName = "Bloodthirst", LastName = "Ketsueki", Address = "Some place", Parent = null };
 
+            /*
             string interfaceSerialized = serializerInterface.Serialize(person);
             IPerson interfaceDiserialized = serializerInterface.Deserialize(interfaceSerialized);
 
             string serialized = serializer.Serialize(person);
             Person deserialized = serializer.Deserialize(serialized);
+            */
+            List<Person> list = new List<Person>() { person, person };
+
+            string serializedList = listSerializer.Serialize(list);
+
+            List<Person> deserializedList = (List<Person>)listSerializer.Deserialize(serializedList);
 
         }
     }

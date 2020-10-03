@@ -17,10 +17,6 @@ namespace BSerializer.Core.Custom
         private const string NULL = "null";
 
         public Type CustomType { get; }
-        private IList<ISerializer> Serializers { get; }
-        private IList<Action<object,object>> PropertieSetter { get; set; }
-        private IList<Func<object, object>> PropertieGetter { get; set; }
-        private int PropertiesCount { get; set; }
         public InterfaceSerializer(Type customType )
         {
             CustomType = customType;
@@ -46,7 +42,11 @@ namespace BSerializer.Core.Custom
 
             Type typeFromString = Assembly.GetEntryAssembly().GetType(typeNode.SubNodes[1].Data);
 
-            if(!CustomType.IsAssignableFrom(typeFromString))
+            CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
+
+            Metadata metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode });
+
+            if (!CustomType.IsAssignableFrom(typeFromString))
             {
                 type = typeFromString;
                 return false;
@@ -55,33 +55,6 @@ namespace BSerializer.Core.Custom
             type = typeFromString;
             return true;
 
-        }
-
-        internal object DeserializeFromNodes(IList<INodeData> list)
-        {
-            object instance = Activator.CreateInstance(CustomType);
-
-            list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
-
-            int propIndex = 0;
-
-            for (int i = 0; i < PropertiesCount; i++)
-            {
-                INodeData node = list[i];
-
-                if (node.Type == Parser.NodeType.COMMENT)
-                    continue;
-                if (node.Type == Parser.NodeType.SYMBOL)
-                    continue;
-
-                object val = Serializers[propIndex].Deserialize(node.Data);
-
-                PropertieSetter[i].Invoke(instance, val);
-
-                propIndex++;
-            }
-
-            return instance;
         }
 
         public object Deserialize(string s)

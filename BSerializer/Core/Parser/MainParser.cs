@@ -38,6 +38,7 @@ namespace Library.Extractors
 
             NodeParsers = new List<INodeParser>()
             {
+                new ArrayNodeParser(),
                 new ObjectNodeParser(),
                 new MetadataNodeParser(),
                 new CommentNodeParser(),
@@ -75,7 +76,10 @@ namespace Library.Extractors
                 // check for nodes that need separators
                 if (currentChar == SerializerConsts.DATA_SEPARATOR && Brackets.Count == 0)
                 {
-                    ParserPass(i);
+                    if (stringBuilder.Length != 0)
+                    {
+                        ParserPass(i);
+                    }
                     continue;
                 }
 

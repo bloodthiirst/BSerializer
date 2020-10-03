@@ -10,7 +10,7 @@ namespace BSerializer.Core.Parser
         private readonly int START_LENGTH = START_SYMBOL.Length;
         private readonly int END_LENGTH = END_SYMBOL.Length;
 
-        private static readonly NodeType serializationNodeType = NodeType.OBJECT;
+        private static readonly NodeType serializationNodeType = NodeType.ARRAY;
         public NodeType NodeType => serializationNodeType;
         public string WrappingStart => START_SYMBOL;
 
@@ -54,7 +54,7 @@ namespace BSerializer.Core.Parser
             nodeDatas = new List<INodeData>(1);
 
             INodeData symbolStart = new NodeDataBase(NodeType.SYMBOL, START_SYMBOL, position);
-            INodeData nodeData = new NodeDataBase(NodeType, content, position);
+            INodeData nodeData = new NodeDataBase(NodeType.ARRAY_CONTENT, content, position);
             INodeData symbolEnd = new NodeDataBase(NodeType.SYMBOL, END_SYMBOL, position);
 
 
