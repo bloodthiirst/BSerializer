@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace BSerializer.Core.Custom
 {
-    public class GenericSerializer<T> : ISerializer
+    public class BSerializer<T> : ISerializer
     {
         private const string NULL = "NULL";
         private static readonly Type GenericType = typeof(T);
@@ -18,7 +18,7 @@ namespace BSerializer.Core.Custom
 
         private ISerializer asInterface;
 
-        public GenericSerializer()
+        public BSerializer()
         {
             if(typeof(IList).IsAssignableFrom(Type))
             {
