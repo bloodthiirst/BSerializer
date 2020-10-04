@@ -17,16 +17,23 @@ namespace BSerializer.Core.Custom
         private const string NULL = "null";
 
         public Type CustomType { get; }
-        public InterfaceSerializer(Type customType )
-        {
-            CustomType = customType;
-        }
 
         public Type Type => CustomType;
 
         public string EmptySymbol => NULL;
 
         public object EmptyValue => null;
+
+        public InterfaceSerializer(Type customType)
+        {
+            CustomType = customType;
+
+            if (!SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
+            {
+                SerializerDependencies.SerializerCollection.Serializers.Add(CustomType, this);
+            }
+
+        }
 
         private bool CanDeserialize(IList<INodeData> nodes , out Type type)
         {

@@ -1,5 +1,6 @@
 ﻿using BSerializer.Core.Collection;
 using System;
+using System.Collections;
 
 namespace BSerializer.Core.Custom
 {
@@ -19,7 +20,12 @@ namespace BSerializer.Core.Custom
 
         public GenericSerializer()
         {
-            if (Type.IsInterface)
+            if(typeof(IList).IsAssignableFrom(Type))
+            {
+                customSerializer = new ListSerializer(Type);
+            }
+
+            else if (Type.IsInterface)
             {
                 customSerializer = new InterfaceSerializer(Type);
             }
