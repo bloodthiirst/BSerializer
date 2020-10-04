@@ -39,11 +39,11 @@ namespace ConsoleUI
             */
             List<IPerson> list = new List<IPerson>() { person, person };
 
-            //string serializedList = listSerializer.Serialize(list);
+            string serializedList = listSerializer.Serialize(list);
 
-            //List<IPerson> deserializedList = listSerializer.Deserialize(serializedList);
+            List<IPerson> deserializedList = listSerializer.Deserialize(serializedList);
 
-            /*
+            
             fileWriter.Write("/// List ///");
 
             fileWriter.Write(Environment.NewLine);
@@ -52,7 +52,7 @@ namespace ConsoleUI
 
             fileWriter.Write(Environment.NewLine);
             fileWriter.Write(Environment.NewLine);
-            */
+            
             fileWriter.Write("/// Object ///");
             fileWriter.Write(Environment.NewLine);
             fileWriter.Write(Environment.NewLine);

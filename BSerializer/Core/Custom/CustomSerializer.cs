@@ -205,7 +205,7 @@ namespace BSerializer.Core.Custom
                 object val = PropertieGetter[i].Invoke(obj);
 
                 
-                string valAsString = Serializers[i].Serialize(val , nextTabbing);
+                string valAsString = Serializers[i].Serialize(val , tabbing);
                 sb.Append(SerializerUtils.GetTabSpaces(tabbing ));
                 sb.Append(valAsString);
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
@@ -213,7 +213,7 @@ namespace BSerializer.Core.Custom
             }
             sb.Append(SerializerUtils.GetTabSpaces(tabbing));
             object lastVal = PropertieGetter[PropertiesCount - 1].Invoke(obj);
-            string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal);
+            string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal , tabbing);
             sb.Append(lastValAsString);
             sb.Append('\n');
             tabbing--;
