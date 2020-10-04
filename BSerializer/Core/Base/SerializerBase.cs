@@ -46,7 +46,7 @@ namespace BSerializer
 
         public abstract bool TrySerialize(T obj, ref string s);
 
-        string ISerializerInternal.Serialize(object obj, int tabbing)
+        string ISerializerInternal.Serialize(object obj, SerializationSettings settings)
         {
             return asInterface.Serialize(obj);
         }

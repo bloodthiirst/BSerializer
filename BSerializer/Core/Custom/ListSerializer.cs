@@ -94,7 +94,7 @@ namespace BSerializer.Core.Custom
 
         public string Serialize(object obj)
         {
-            return asInterface.Serialize(obj, 0);
+            return asInterface.Serialize(obj, new SerializationSettings());
         }
 
         public bool TryDeserialize(string s, ref object obj)
@@ -107,7 +107,7 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        public string Serialize(object obj, int tabbing)
+        public string Serialize(object obj, SerializationSettings settings)
         {
             if (obj == null)
                 return EmptySymbol;
@@ -122,8 +122,8 @@ namespace BSerializer.Core.Custom
 
             sb.Append(arrayNodeParser.WrappingStart);
             sb.Append('\n');
-            tabbing++;
-            sb.Append(SerializerUtils.GetTabSpaces(tabbing));
+            settings.TabPadding++;
+            sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
             sb.Append("<");
             sb.Append(CustomType.FullName);
             sb.Append(">");
@@ -136,8 +136,8 @@ namespace BSerializer.Core.Custom
 
                 ISerializerInternal elementSerialiazer = SerializerDependencies.SerializerCollection.Serializers[elementType];
                 sb.Append('\n');
-                sb.Append(SerializerUtils.GetTabSpaces(tabbing));
-                string serializedElement = elementSerialiazer.Serialize(element , tabbing);
+                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                string serializedElement = elementSerialiazer.Serialize(element , settings);
                 sb.Append(serializedElement);
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
 
@@ -145,8 +145,8 @@ namespace BSerializer.Core.Custom
 
             sb.Remove(sb.Length - 1, 1);
             sb.Append('\n');
-            tabbing--;
-            sb.Append(SerializerUtils.GetTabSpaces(tabbing));
+            settings.TabPadding--;
+            sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
             sb.Append(arrayNodeParser.WrappingEnd);
 
             return sb.ToString();

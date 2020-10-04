@@ -91,7 +91,7 @@ namespace BSerializer.Core.Custom
 
         public string Serialize(object obj)
         {
-            return asInterface.Serialize(obj, 0);
+            return asInterface.Serialize(obj, new SerializationSettings());
         }
 
         public bool TryDeserialize(string s, ref object obj)
@@ -104,11 +104,11 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        public string Serialize(object obj, int tabbing)
+        public string Serialize(object obj, SerializationSettings settings)
         {
             var concreteType = obj.GetType();
 
-            return SerializerDependencies.SerializerCollection.Serializers[concreteType].Serialize(obj, tabbing);
+            return SerializerDependencies.SerializerCollection.Serializers[concreteType].Serialize(obj, settings);
         }
     }
 }

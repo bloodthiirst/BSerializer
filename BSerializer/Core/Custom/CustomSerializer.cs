@@ -166,7 +166,7 @@ namespace BSerializer.Core.Custom
 
         public string Serialize(object obj)
         {
-            return asInterface.Serialize(obj, 0);
+            return asInterface.Serialize(obj, new SerializationSettings());
         }
 
         public bool TryDeserialize(string s, ref object obj)
@@ -179,7 +179,7 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        string  ISerializerInternal.Serialize(object obj, int tabbing)
+        string  ISerializerInternal.Serialize(object obj, SerializationSettings settings)
         {
             if (obj == null)
                 return EmptySymbol;
@@ -193,9 +193,8 @@ namespace BSerializer.Core.Custom
 
             sb.Append(objectNodeParser.WrappingStart);
             sb.Append('\n');
-            tabbing++;
-            int nextTabbing = tabbing + 1;
-            sb.Append(SerializerUtils.GetTabSpaces(tabbing));
+            settings.TabPadding++;
+            sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
             sb.Append("<");
             sb.Append(CustomType.FullName);
             sb.Append(">");
@@ -205,19 +204,19 @@ namespace BSerializer.Core.Custom
                 object val = PropertieGetter[i].Invoke(obj);
 
                 
-                string valAsString = Serializers[i].Serialize(val , tabbing);
-                sb.Append(SerializerUtils.GetTabSpaces(tabbing ));
+                string valAsString = Serializers[i].Serialize(val , settings);
+                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
                 sb.Append(valAsString);
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
                 sb.Append('\n');
             }
-            sb.Append(SerializerUtils.GetTabSpaces(tabbing));
+            sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
             object lastVal = PropertieGetter[PropertiesCount - 1].Invoke(obj);
-            string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal , tabbing);
+            string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal , settings);
             sb.Append(lastValAsString);
             sb.Append('\n');
-            tabbing--;
-            sb.Append(SerializerUtils.GetTabSpaces(tabbing));
+            settings.TabPadding--;
+            sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
             sb.Append(objectNodeParser.WrappingEnd);
 
             return sb.ToString();

@@ -6,6 +6,6 @@ namespace BSerializer.Core.Base
 {
     internal interface ISerializerInternal : ISerializer
     {
-        string Serialize(object obj , int tabbing);
+        string Serialize(object obj , SerializationSettings settings);
     }
 }
