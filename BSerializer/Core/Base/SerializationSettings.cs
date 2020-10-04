@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BSerializer.Core.Base
 {
-    public struct SerializationSettings
+    internal struct SerializationSettings
     {
         public int TabPadding { get; set; }
     }

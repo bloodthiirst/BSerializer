@@ -107,7 +107,7 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        public string Serialize(object obj, SerializationSettings settings)
+        string ISerializerInternal.Serialize(object obj, SerializationSettings settings)
         {
             if (obj == null)
                 return EmptySymbol;

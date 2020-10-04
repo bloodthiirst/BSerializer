@@ -104,7 +104,7 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        public string Serialize(object obj, SerializationSettings settings)
+        string ISerializerInternal.Serialize(object obj, SerializationSettings settings)
         {
             var concreteType = obj.GetType();
 
