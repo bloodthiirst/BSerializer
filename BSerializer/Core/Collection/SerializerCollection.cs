@@ -1,15 +1,16 @@
-﻿using System;
+﻿using BSerializer.Core.Base;
+using System;
 using System.Collections.Generic;
 
 namespace BSerializer.Core.Collection
 {
-    public class SerializerCollection : ISerializerCollection
+    internal class SerializerCollection : ISerializerCollection
     {
-        public IDictionary<Type, ISerializer> Serializers { get; set; }
+        public IDictionary<Type, ISerializerInternal> Serializers { get; set; }
 
-        public SerializerCollection()
+        internal  SerializerCollection()
         {
-            Serializers = new Dictionary<Type, ISerializer>();
+            Serializers = new Dictionary<Type, ISerializerInternal>();
         }
     }
 }

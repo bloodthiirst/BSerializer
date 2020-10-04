@@ -13,24 +13,25 @@ using System.Text;
 
 namespace BSerializer.Core.Custom
 {
-    public class CustomSerializer : ISerializer
+    public class CustomSerializer : ISerializerInternal
     {
         private const string NULL = "null";
-
         public Type CustomType { get; }
-        private IList<ISerializer> Serializers { get; }
+        private IList<ISerializerInternal> Serializers { get; }
         private IList<Action<object,object>> PropertieSetter { get; set; }
         private IList<Func<object, object>> PropertieGetter { get; set; }
+        private ISerializerInternal asInterface { get; }
         private int PropertiesCount { get; set; }
         public CustomSerializer(Type customType)
         {
             CustomType = customType;
 
-            Serializers = new List<ISerializer>();
+            Serializers = new List<ISerializerInternal>();
             PropertieSetter = new List<Action<object, object>>();
             PropertieGetter = new List<Func<object, object>>();
+            asInterface = this;
 
-            if(! SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
+            if (! SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
             {
                 SerializerDependencies.SerializerCollection.Serializers.Add(CustomType, this);
             }
@@ -64,7 +65,7 @@ namespace BSerializer.Core.Custom
                 PropertyInfo prop = props[i];
                 Func<object, object> getter = SerializerUtils.GetterToDelegate(prop.GetMethod);
                 Action<object, object> setter = SerializerUtils.SetterToDelegate(prop.SetMethod);
-                ISerializer serializer = SerializerDependencies.SerializerCollection.Serializers[prop.PropertyType];
+                ISerializerInternal serializer = SerializerDependencies.SerializerCollection.Serializers[prop.PropertyType];
 
                 PropertieGetter.Add(getter);
                 PropertieSetter.Add(setter);
@@ -165,6 +166,21 @@ namespace BSerializer.Core.Custom
 
         public string Serialize(object obj)
         {
+            return asInterface.Serialize(obj, 0);
+        }
+
+        public bool TryDeserialize(string s, ref object obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool TrySerialize(object obj, ref string s)
+        {
+            throw new NotImplementedException();
+        }
+
+        string  ISerializerInternal.Serialize(object obj, int tabbing)
+        {
             if (obj == null)
                 return EmptySymbol;
 
@@ -176,33 +192,35 @@ namespace BSerializer.Core.Custom
             ObjectNodeParser objectNodeParser = new ObjectNodeParser();
 
             sb.Append(objectNodeParser.WrappingStart);
+            sb.Append('\n');
+            tabbing++;
+            int nextTabbing = tabbing + 1;
+            sb.Append(SerializerUtils.GetTabSpaces(tabbing));
             sb.Append("<");
             sb.Append(CustomType.FullName);
             sb.Append(">");
-
-            for(int i = 0; i < PropertiesCount - 1;i++)
+            sb.Append('\n');
+            for (int i = 0; i < PropertiesCount - 1; i++)
             {
                 object val = PropertieGetter[i].Invoke(obj);
-                string valAsString = Serializers[i].Serialize(val);
+
+                
+                string valAsString = Serializers[i].Serialize(val , nextTabbing);
+                sb.Append(SerializerUtils.GetTabSpaces(tabbing ));
                 sb.Append(valAsString);
-                sb.Append( SerializerConsts.DATA_SEPARATOR );
+                sb.Append(SerializerConsts.DATA_SEPARATOR);
+                sb.Append('\n');
             }
+            sb.Append(SerializerUtils.GetTabSpaces(tabbing));
             object lastVal = PropertieGetter[PropertiesCount - 1].Invoke(obj);
             string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal);
             sb.Append(lastValAsString);
+            sb.Append('\n');
+            tabbing--;
+            sb.Append(SerializerUtils.GetTabSpaces(tabbing));
             sb.Append(objectNodeParser.WrappingEnd);
 
             return sb.ToString();
-        }
-
-        public bool TryDeserialize(string s, ref object obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool TrySerialize(object obj, ref string s)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -1,12 +1,13 @@
-﻿using System;
+﻿using BSerializer.Core.Base;
+using System;
 
 namespace BSerializer
 {
-    public abstract class SerializerBase<T> : ISerializer
+    public abstract class SerializerBase<T> : ISerializerInternal
     {
         private static readonly Type InternalType = typeof(T);
         public Type Type => InternalType;
-
+        private ISerializer asInterface => this;
         public abstract string EmptySymbol { get; }
         public abstract object EmptyValue { get; }
 
@@ -45,5 +46,9 @@ namespace BSerializer
 
         public abstract bool TrySerialize(T obj, ref string s);
 
+        string ISerializerInternal.Serialize(object obj, int tabbing)
+        {
+            return asInterface.Serialize(obj);
+        }
     }
 }

@@ -1,10 +1,11 @@
-﻿using System;
+﻿using BSerializer.Core.Base;
+using System;
 using System.Collections.Generic;
 
 namespace BSerializer.Core.Collection
 {
-    public interface ISerializerCollection
+    internal interface ISerializerCollection
     {
-        IDictionary<Type,ISerializer> Serializers { get; }
+        IDictionary<Type,ISerializerInternal> Serializers { get; }
     }
 }

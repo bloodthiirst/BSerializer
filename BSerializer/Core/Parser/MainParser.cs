@@ -146,12 +146,7 @@ namespace Library.Extractors
                 }
                 */
 
-                if (currentChar == '\n' || currentChar == '\t')
-                {
-                    continue;
-                }
-
-                if(currentChar == ' ')
+                if (currentChar == '\n' || currentChar == '\t' ||currentChar == '\r' || currentChar == ' ' || currentChar == '\b')
                 {
                     continue;
                 }

@@ -12,10 +12,9 @@ using System.Text;
 
 namespace BSerializer.Core.Custom
 {
-    public class InterfaceSerializer : ISerializer
+    public class InterfaceSerializer : ISerializerInternal
     {
         private const string NULL = "null";
-
         public Type CustomType { get; }
 
         public Type Type => CustomType;
@@ -23,6 +22,7 @@ namespace BSerializer.Core.Custom
         public string EmptySymbol => NULL;
 
         public object EmptyValue => null;
+        private ISerializerInternal asInterface => this;
 
         public InterfaceSerializer(Type customType)
         {
@@ -91,9 +91,7 @@ namespace BSerializer.Core.Custom
 
         public string Serialize(object obj)
         {
-            var concreteType = obj.GetType();
-
-            return SerializerDependencies.SerializerCollection.Serializers[concreteType].Serialize(obj);
+            return asInterface.Serialize(obj, 0);
         }
 
         public bool TryDeserialize(string s, ref object obj)
@@ -104,6 +102,13 @@ namespace BSerializer.Core.Custom
         public bool TrySerialize(object obj, ref string s)
         {
             throw new NotImplementedException();
+        }
+
+        public string Serialize(object obj, int tabbing)
+        {
+            var concreteType = obj.GetType();
+
+            return SerializerDependencies.SerializerCollection.Serializers[concreteType].Serialize(obj, tabbing);
         }
     }
 }

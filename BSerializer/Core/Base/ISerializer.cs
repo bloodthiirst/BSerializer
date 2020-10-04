@@ -12,5 +12,6 @@ namespace BSerializer
 
         string EmptySymbol { get; }
         object EmptyValue { get; }
+
     }
 }

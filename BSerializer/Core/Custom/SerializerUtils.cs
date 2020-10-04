@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 namespace BSerializer.Core.Custom
 {
@@ -72,6 +73,42 @@ namespace BSerializer.Core.Custom
                 );
 
             return lambda.Compile();
+        }
+
+        /// <summary>
+        /// returns <paramref name="count"/> number of tabs
+        /// </summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static string GetTabSpaces(int count)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < count; i++)
+            {
+                sb.Append('\t');
+            }
+            return sb.ToString();
+        }
+
+        public static string AddTabToLines(string s , int count = 1)
+        {
+            string res = string.Empty;
+            for(int i =0;i < s.Length; i ++)
+            {
+                if(s[i] == '\n')
+                {
+                    res += "\n";
+                    for(int t = 0; t < count;t++)
+                    {
+                        res += '\t';
+                    }
+                }
+                else
+                {
+                    res += s[i];
+                }
+            }
+            return res;
         }
 
     }
