@@ -2,7 +2,7 @@
 
     - BSerializer is an attempt of making and understanding serializers in the process.
 
-    - BSerializer is made using  *.NET Standard 2.0* so this should be usable for most C# projects. 
+    - BSerializer is made using  **.NET Standard 2.0** so this should be usable for most C# projects. 
 
 ## Format
 
@@ -40,6 +40,25 @@
 
 the parts surrounded by ```#``` are considered comment
 in the example above , the comments are auto-generated using the class's propertie names
+with the auto-generated turned off , the result would look like this :
+
+```
+{
+	<ConsoleUI.Model.Person>
+	123,
+	Bloodthirst,
+	Ketsueki,
+	Some place,
+	{
+		<ConsoleUI.Model.Person>
+		69,
+		Parent,
+		McParenton,
+		Some other place,
+		null
+	}
+}
+```
 
 - List example
 ```
