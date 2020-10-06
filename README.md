@@ -108,3 +108,4 @@ with the auto-generated turned off , the result would look like this :
 	}
 ]
 ```
+As you can see , with the auto-generated comments , a small comment indicating the index of the element is added above every elment of the list
