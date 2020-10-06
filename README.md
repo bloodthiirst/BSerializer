@@ -1,8 +1,8 @@
 # BSerializer
 
-    - BSerializer is an attempt of making and understanding serializers in the process.
+- BSerializer is an attempt of making and understanding serializers in the process.
 
-    - BSerializer is made using  **.NET Standard 2.0** so this should be usable for most C# projects. 
+- BSerializer is made using  **.NET Standard 2.0** so this should be usable for most C# projects. 
 
 ## Format
 
