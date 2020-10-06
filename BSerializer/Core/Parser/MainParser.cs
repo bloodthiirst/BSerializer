@@ -64,6 +64,9 @@ namespace Library.Extractors
                 // check for nodes that dont need separators
                 foreach (IParserNoSeparator noSep in NoSeparator)
                 {
+                    if (Brackets.Count != 0)
+                        continue;
+
                     string prop = stringBuilder.ToString();
 
                     if (noSep.Validate(prop) && Brackets.Count == 0)
@@ -91,6 +94,28 @@ namespace Library.Extractors
                     if (!withWrapping.HasWrapping)
                         continue;
 
+
+                    if (i + 1 >= withWrapping.WrappingEnd.Length)
+                    {
+                        string lastChars = data.Substring(i, withWrapping.WrappingEnd.Length);
+
+                        if (lastChars.Equals(withWrapping.WrappingEnd))
+                        {
+                            if(Brackets.Count == 0)
+                            {
+                                skip = false;
+                                continue;
+                            }
+                            if (Brackets.Peek().Equals(withWrapping.WrappingStart))
+                            {
+                                stringBuilder.Append(withWrapping.WrappingEnd);
+                                Brackets.Pop();
+                                skip = true;
+                                break;
+                            }
+                        }
+                    }
+
                     if (i+1 >= withWrapping.WrappingStart.Length)
                     {
                         string lastChars = data.Substring(i, withWrapping.WrappingStart.Length);
@@ -104,21 +129,6 @@ namespace Library.Extractors
                         }
                     }
 
-                    if (i+1 >= withWrapping.WrappingEnd.Length)
-                    {
-                        string lastChars = data.Substring(i, withWrapping.WrappingEnd.Length);
-
-                        if (lastChars.Equals(withWrapping.WrappingEnd))
-                        {
-                            if (Brackets.Peek().Equals(withWrapping.WrappingStart))
-                            {
-                                stringBuilder.Append(withWrapping.WrappingEnd);
-                                Brackets.Pop();
-                                skip = true;
-                                break;
-                            }
-                        }
-                    }
 
                 }
 
@@ -160,7 +170,7 @@ namespace Library.Extractors
                 return false;
             }
 
-            ParserPass(data.Length);
+            ParserPass(stringBuilder.Length);
             nodes = new List<INodeData>(NodeDatas);
             return true;
         }

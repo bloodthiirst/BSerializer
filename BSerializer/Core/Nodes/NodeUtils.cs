@@ -15,13 +15,15 @@ namespace BSerializer.Core.Nodes
             NodeType.COMMENT,
             NodeType.DATA,
             NodeType.METADATA,
-            NodeType.SYMBOL
+            NodeType.SYMBOL,
+            NodeType.METADATA_CONTENT
         };
 
         private static NodeType[] IgnoredOnDeserialization = new NodeType[]
         {
             NodeType.COMMENT,
-            NodeType.METADATA
+            NodeType.METADATA,
+            NodeType.METADATA_CONTENT
         };
 
 
