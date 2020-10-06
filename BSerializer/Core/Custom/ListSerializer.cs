@@ -130,9 +130,20 @@ namespace BSerializer.Core.Custom
 
             IEnumerable cast = (IEnumerable)obj;
 
+            int index = 0;
+
             foreach (object element in cast)
             {
                 Type elementType = element.GetType();
+
+
+                if (settings.WithPropertiesComments)
+                {
+                    sb.Append('\n');
+                    sb.Append('\n');
+                    sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                    sb.Append($"# [{ index }] #");
+                }
 
                 ISerializerInternal elementSerialiazer = SerializerDependencies.SerializerCollection.Serializers[elementType];
                 sb.Append('\n');
@@ -140,7 +151,7 @@ namespace BSerializer.Core.Custom
                 string serializedElement = elementSerialiazer.Serialize(element , settings);
                 sb.Append(serializedElement);
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
-
+                index++;
             }
 
             sb.Remove(sb.Length - 1, 1);
