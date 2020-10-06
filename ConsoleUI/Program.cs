@@ -28,6 +28,8 @@ namespace ConsoleUI
             
 
             string serializedPerson = serializer.Serialize(person);
+            var deserialize = serializer.Deserialize(serializedPerson);
+
             //string serializedParent = serializer.Serialize(parent);;
 
             /*
@@ -37,6 +39,7 @@ namespace ConsoleUI
             string serialized = serializer.Serialize(person);
             Person deserialized = serializer.Deserialize(serialized);
             */
+            /*
             List<IPerson> list = new List<IPerson>() { person, person };
 
             string serializedList = listSerializer.Serialize(list);
@@ -52,7 +55,7 @@ namespace ConsoleUI
 
             fileWriter.Write(Environment.NewLine);
             fileWriter.Write(Environment.NewLine);
-            
+            */
             fileWriter.Write("/// Object ///");
             fileWriter.Write(Environment.NewLine);
             fileWriter.Write(Environment.NewLine);

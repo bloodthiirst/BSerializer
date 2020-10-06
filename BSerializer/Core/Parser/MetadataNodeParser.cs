@@ -57,13 +57,20 @@ namespace BSerializer.Core.Parser
 
             var indexes = GetIndexes(data);
 
-            int startIndex = indexes[0] + 1;
-            int endIndex = indexes[1];
+            int startIndex = commentStarts[0];
+            int endIndex = commentEnds[0];
+
+           if(startIndex != 0)
+            {
+                patched = data;
+                nodeDatas = new List<INodeData>();
+                return false;
+            }
 
 
-            var content = data.Substring(startIndex, endIndex - startIndex);
+            var content = data.Substring(startIndex + 1, endIndex - startIndex - 1);
 
-            var fullText = data.Substring(startIndex - START_LENGTH, content.Length + START_LENGTH + END_LENGTH); 
+            var fullText = data.Substring(startIndex, endIndex - startIndex + 1); 
 
             NodeDataBase obj = new NodeDataBase(NodeType, fullText, position);
 
@@ -73,8 +80,9 @@ namespace BSerializer.Core.Parser
             INodeData nodeData = new NodeDataBase(NodeType.METADATA_CONTENT, content, position);
             INodeData symbolEnd = new NodeDataBase(NodeType.SYMBOL, END_SYMBOL, position);
 
-            patched = data.Substring(0, startIndex - 1);
-            patched += data.Substring(endIndex + 1 , data.Length - endIndex - 1);
+            var firstPart = data.Substring(0, startIndex);
+            var secondPart = data.Substring(endIndex + 1, data.Length - 1 - endIndex );
+            patched = firstPart + secondPart;
 
             MainParser mainParser = new MainParser();
             IList<INodeData> list;
@@ -128,6 +136,7 @@ namespace BSerializer.Core.Parser
             var starts = AllIndexesOf(data, START_SYMBOL).ToList();
             var ends = AllIndexesOf(data, END_SYMBOL).ToList();
 
+
             if (starts.Count() == 0)
             {
                 return false;
@@ -137,6 +146,12 @@ namespace BSerializer.Core.Parser
             {
                 return false;
             }
+
+            if (starts[0] != 0)
+            {
+                return false;
+            }
+
             // make sure there's at least 2 different indexes
             var hash = new HashSet<int>();
 

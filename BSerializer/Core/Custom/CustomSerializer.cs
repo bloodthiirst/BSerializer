@@ -20,6 +20,7 @@ namespace BSerializer.Core.Custom
         private IList<ISerializerInternal> Serializers { get; }
         private IList<Action<object,object>> PropertieSetter { get; set; }
         private IList<Func<object, object>> PropertieGetter { get; set; }
+        private IList<string> PropertiesName { get; set; }
         private ISerializerInternal asInterface { get; }
         private int PropertiesCount { get; set; }
         public CustomSerializer(Type customType)
@@ -29,6 +30,7 @@ namespace BSerializer.Core.Custom
             Serializers = new List<ISerializerInternal>();
             PropertieSetter = new List<Action<object, object>>();
             PropertieGetter = new List<Func<object, object>>();
+            PropertiesName = new List<string>();
             asInterface = this;
 
             if (! SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
@@ -70,6 +72,7 @@ namespace BSerializer.Core.Custom
                 PropertieGetter.Add(getter);
                 PropertieSetter.Add(setter);
                 Serializers.Add(serializer);
+                PropertiesName.Add(prop.Name);
             }
         }
 
@@ -205,11 +208,27 @@ namespace BSerializer.Core.Custom
 
                 
                 string valAsString = Serializers[i].Serialize(val , settings);
+
+                if(settings.WithPropertiesComments)
+                {
+                    sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                    sb.Append($"# { PropertiesName[i] } #");
+                    sb.Append('\n');
+                }
+                
                 sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
                 sb.Append(valAsString);
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
                 sb.Append('\n');
             }
+
+            if (settings.WithPropertiesComments)
+            {
+                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                sb.Append($"# { PropertiesName[PropertiesCount - 1] } #");
+                sb.Append('\n');
+            }
+
             sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
             object lastVal = PropertieGetter[PropertiesCount - 1].Invoke(obj);
             string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal , settings);

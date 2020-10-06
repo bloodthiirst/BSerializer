@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BSerializer.Core.Parser.SerializationNodes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
