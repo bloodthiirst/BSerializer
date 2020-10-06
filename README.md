@@ -6,10 +6,10 @@
 
 ## Format
 
-    - The serialization output would be something like this :
+- The serialization output would be something like this :
 
 ### Serialization output
-    - One instance example
+- One instance example
 ```
 {
 	<ConsoleUI.Model.Person>
@@ -38,10 +38,10 @@
 }
 ```
 
-- where the parts surrounded by ```#``` are considered comment
-- in the example above , the comments are auto-generated using the class's propertie names
+the parts surrounded by ```#``` are considered comment
+in the example above , the comments are auto-generated using the class's propertie names
 
-    - List example
+- List example
 ```
 [
 	<System.Collections.Generic.List`1[[ConsoleUI.Model.IPerson, ConsoleUI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]>
