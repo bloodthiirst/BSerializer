@@ -4,9 +4,23 @@
 
 - BSerializer is made using  **.NET Standard 2.0** so this should be usable for most C# projects. 
 
-## Format
+## Examples:
 
-- The serialization output would be something like this :
+for the next examples we will use this C# class to demonstrate the serializations result:
+
+```csharp
+namespace ConsoleUI.Model
+{
+    public class Person
+    {
+        public int Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+        public Person Parent { get; set; }
+    }
+}
+```
 
 ### Serialization output
 - One instance example
