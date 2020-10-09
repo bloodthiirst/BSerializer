@@ -181,13 +181,13 @@ namespace BSerializer.Core.Custom
                 sb.Append('\n');
                 sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
                 sb.Append('}');
-                sb.Append('\n');
-                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
+                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+
                 index++;
             }
 
-            sb.Remove(sb.Length - 1, 1);
+            sb.Remove(sb.Length - 2, 2);
             sb.Append('\n');
             settings.TabPadding--;
             sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
