@@ -15,6 +15,7 @@ namespace ConsoleUI
             BSerializer<Person> serializer = new BSerializer<Person>();
             BSerializer<IPerson> serializerInterface = new BSerializer<IPerson>();
             BSerializer<List<IPerson>> listSerializer = new BSerializer<List<IPerson>>();
+            BSerializer<Dictionary<int , Person>> dictSerializer = new BSerializer<Dictionary<int, Person>>();
 
             var parent = new Person() { Address = "Some other place", FirstName = "Parent", LastName = "McParenton", Id = 69, Parent = null };
             var person = new Person() { Id = 123, FirstName = "Bloodthirst", LastName = "Ketsueki", Address = "Some place", Parent =  parent};
@@ -40,9 +41,16 @@ namespace ConsoleUI
             string serializedList = listSerializer.Serialize(list);
             
             List<IPerson> deserializedList = listSerializer.Deserialize(serializedList);
-            
-            
-            
+
+
+            Dictionary<int, Person> dict = new Dictionary<int, Person>()
+            {
+                { 420 , parent },
+                { 88 , parent }
+            };
+
+            string serializedDict = dictSerializer.Serialize(dict);
+
             fileWriter.Write("/// List ///");
 
             fileWriter.Write(Environment.NewLine);
@@ -61,7 +69,13 @@ namespace ConsoleUI
 
             fileWriter.Write(Environment.NewLine);
             fileWriter.Write(Environment.NewLine);
-            
+
+            fileWriter.Write("/// Dictionary ///");
+            fileWriter.Write(Environment.NewLine);
+            fileWriter.Write(Environment.NewLine);
+
+            fileWriter.Write(serializedDict);
+
             fileWriter.Dispose();
 
         }
