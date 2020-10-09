@@ -84,14 +84,19 @@ namespace BSerializer.Core.Custom
 
             list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
 
-            object instance = Activator.CreateInstance(CollectionType.MakeGenericType(KeyType));
+            object instance = Activator.CreateInstance(CollectionType.MakeGenericType(KeyType , ValueType));
 
-            IList cast = (IList)instance;
+            IDictionary cast = (IDictionary)instance;
 
-            foreach(var el in list)
+            foreach(var kv in list)
             {
-                var desElement = SerializerDependencies.SerializerCollection.Serializers[KeyType].Deserialize(el.Data);
-                cast.Add(desElement);
+                var key = kv.SubNodes[1].SubNodes[0];
+                var value = kv.SubNodes[1].SubNodes[1];
+
+                var keyElement = SerializerDependencies.SerializerCollection.Serializers[KeyType].Deserialize(key.Data);
+                var valElement = SerializerDependencies.SerializerCollection.Serializers[ValueType].Deserialize(value.Data);
+
+                cast.Add(keyElement , valElement);
             }
 
             return cast;

@@ -50,6 +50,7 @@ namespace ConsoleUI
             };
 
             string serializedDict = dictSerializer.Serialize(dict);
+            Dictionary<int, Person> deserializedDic = dictSerializer.Deserialize(serializedDict);
 
             fileWriter.Write("/// List ///");
 
