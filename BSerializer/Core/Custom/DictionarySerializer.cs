@@ -153,6 +153,9 @@ namespace BSerializer.Core.Custom
                 
                 // key
                 sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                sb.Append("# key #");
+                sb.Append('\n');
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
                 string serializedKey = keySerialiazer.Serialize(key, context);
                 sb.Append(serializedKey);
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
@@ -160,6 +163,9 @@ namespace BSerializer.Core.Custom
 
                 // value
                 string serializedValue = valueSerialiazer.Serialize(value, context);
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                sb.Append("# value #");
+                sb.Append('\n');
                 sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
                 sb.Append(serializedValue);
                 context.TabPadding--;
@@ -210,8 +216,9 @@ namespace BSerializer.Core.Custom
 
             foreach (var kv in list)
             {
-                var key = kv.SubNodes[1].SubNodes[0];
-                var value = kv.SubNodes[1].SubNodes[1];
+                var kvNodes = kv.SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
+                var key = kvNodes[0];
+                var value = kvNodes[1];
 
                 var keyElement = SerializerDependencies.SerializerCollection.Serializers[KeyType].Deserialize(key.Data , context);
                 var valElement = SerializerDependencies.SerializerCollection.Serializers[ValueType].Deserialize(value.Data , context);
