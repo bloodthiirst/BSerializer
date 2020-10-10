@@ -44,11 +44,12 @@ namespace BSerializer.Core.Custom
 
         public object EmptyValue => null;
 
-        private bool CanDeserialize(IList<INodeData> nodes , out Type type)
+        private bool CanDeserialize(IList<INodeData> nodes , out Type type, out Metadata metadata, DeserializationContext context)
         {
             if(nodes[0].Type != NodeType.ARRAY)
             {
                 type = null;
+                metadata = null;
                 return false;
             }
 
@@ -56,55 +57,26 @@ namespace BSerializer.Core.Custom
 
             INodeData typeNode = nodes[0].SubNodes[1].SubNodes.FirstOrDefault(n => n.Type == NodeType.METADATA);
 
-            Type typeFromString = Assembly.GetEntryAssembly().GetType(typeNode.SubNodes[1].Data);
+            CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
+
+            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context);
+
+            Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
 
             type = typeFromString;
+
             return true;
 
         }
 
         public object Deserialize(string s)
         {
-            if (s.Equals(EmptySymbol))
-            {
-                return EmptyValue;
-            }
-
-
-            MainParser parser = new MainParser();
-            IList<INodeData> list;
-            parser.ExtractNodeData(s, out list);
-
-            Type instanceType;
-
-            if(!CanDeserialize(list, out instanceType))
-            {
-                return EmptyValue;
-            }
-
-            list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
-
-            object instance = Activator.CreateInstance(CollectionType.MakeGenericType(KeyType , ValueType));
-
-            IDictionary cast = (IDictionary)instance;
-
-            foreach(var kv in list)
-            {
-                var key = kv.SubNodes[1].SubNodes[0];
-                var value = kv.SubNodes[1].SubNodes[1];
-
-                var keyElement = SerializerDependencies.SerializerCollection.Serializers[KeyType].Deserialize(key.Data);
-                var valElement = SerializerDependencies.SerializerCollection.Serializers[ValueType].Deserialize(value.Data);
-
-                cast.Add(keyElement , valElement);
-            }
-
-            return cast;
+            return asInterface.Deserialize(s, new DeserializationContext());
         }
 
         public string Serialize(object obj)
         {
-            return asInterface.Serialize(obj, new SerializationSettings());
+            return asInterface.Serialize(obj, new SerializationContext());
         }
 
         public bool TryDeserialize(string s, ref object obj)
@@ -117,13 +89,18 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        string ISerializerInternal.Serialize(object obj, SerializationSettings settings)
+        string ISerializerInternal.Serialize(object obj, SerializationContext context)
         {
             if (obj == null)
                 return EmptySymbol;
 
             if (obj.Equals(EmptyValue))
                 return EmptySymbol;
+
+            if (context.TryGet(obj, out string ser, out int reference))
+            {
+                return ser;
+            }
 
             StringBuilder sb = new StringBuilder();
 
@@ -132,10 +109,13 @@ namespace BSerializer.Core.Custom
 
             sb.Append(arrayNodeParser.WrappingStart);
             sb.Append('\n');
-            settings.TabPadding++;
-            sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+            context.TabPadding++;
+            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
             sb.Append("<");
             sb.Append(CustomType.FullName);
+            sb.Append(SerializerConsts.DATA_SEPARATOR);
+            context.Register(obj, out int newRef);
+            sb.Append(newRef);
             sb.Append(">");
 
             IDictionary cast = (IDictionary)obj;
@@ -153,52 +133,93 @@ namespace BSerializer.Core.Custom
 
                 Type valueType = value.GetType();
 
-                if (settings.WithPropertiesComments)
+                if (context.WithPropertiesComments)
                 {
                     sb.Append('\n');
                     sb.Append('\n');
-                    sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
                     sb.Append($"# [{ index }] #");
                 }
 
                 ISerializerInternal keySerialiazer = SerializerDependencies.SerializerCollection.Serializers[keyType];
                 ISerializerInternal valueSerialiazer = SerializerDependencies.SerializerCollection.Serializers[valueType];
                 sb.Append('\n');
-                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
 
                 // kv pair
                 sb.Append('{');
                 sb.Append('\n');
-                settings.TabPadding++;
+                context.TabPadding++;
                 
                 // key
-                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
-                string serializedKey = keySerialiazer.Serialize(key, settings);
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                string serializedKey = keySerialiazer.Serialize(key, context);
                 sb.Append(serializedKey);
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
                 sb.Append('\n');
 
                 // value
-                string serializedValue = valueSerialiazer.Serialize(value, settings);
-                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                string serializedValue = valueSerialiazer.Serialize(value, context);
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
                 sb.Append(serializedValue);
-                settings.TabPadding--;
+                context.TabPadding--;
                 sb.Append('\n');
-                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
                 sb.Append('}');
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
-                sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
 
                 index++;
             }
 
             sb.Remove(sb.Length - 2, 2);
             sb.Append('\n');
-            settings.TabPadding--;
-            sb.Append(SerializerUtils.GetTabSpaces(settings.TabPadding));
+            context.TabPadding--;
+            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
             sb.Append(arrayNodeParser.WrappingEnd);
 
+            context.SaveValue(newRef, sb.ToString());
+
             return sb.ToString();
+        }
+
+        object ISerializerInternal.Deserialize(string data, DeserializationContext context)
+        {
+            if (data.Equals(EmptySymbol))
+            {
+                return EmptyValue;
+            }
+
+
+            MainParser parser = new MainParser();
+            IList<INodeData> list;
+            parser.ExtractNodeData(data, out list);
+
+            Type instanceType;
+            Metadata metadata;
+            if (!CanDeserialize(list, out instanceType , out metadata , context ))
+            {
+                return EmptyValue;
+            }
+
+            list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
+
+            object instance = Activator.CreateInstance(CollectionType.MakeGenericType(KeyType, ValueType));
+
+            IDictionary cast = (IDictionary)instance;
+
+            foreach (var kv in list)
+            {
+                var key = kv.SubNodes[1].SubNodes[0];
+                var value = kv.SubNodes[1].SubNodes[1];
+
+                var keyElement = SerializerDependencies.SerializerCollection.Serializers[KeyType].Deserialize(key.Data , context);
+                var valElement = SerializerDependencies.SerializerCollection.Serializers[ValueType].Deserialize(value.Data , context);
+
+                cast.Add(keyElement, valElement);
+            }
+
+            return cast;
         }
     }
 }

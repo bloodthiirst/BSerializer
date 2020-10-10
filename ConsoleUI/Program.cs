@@ -52,6 +52,8 @@ namespace ConsoleUI
             string serializedDict = dictSerializer.Serialize(dict);
             Dictionary<int, Person> deserializedDic = dictSerializer.Deserialize(serializedDict);
 
+            bool sameRef = object.ReferenceEquals(deserializedDic[420], deserializedDic[88]);
+
             fileWriter.Write("/// List ///");
 
             fileWriter.Write(Environment.NewLine);

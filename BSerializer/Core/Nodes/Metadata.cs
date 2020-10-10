@@ -7,5 +7,6 @@ namespace BSerializer.Core.Nodes
     public class Metadata
     {
         public string TypeFullName { get; set; }
+        public int ReferenceTracker { get; set; }
     }
 }

@@ -46,9 +46,14 @@ namespace BSerializer
 
         public abstract bool TrySerialize(T obj, ref string s);
 
-        string ISerializerInternal.Serialize(object obj, SerializationSettings settings)
+        string ISerializerInternal.Serialize(object obj, SerializationContext settings)
         {
             return asInterface.Serialize(obj);
+        }
+
+        object ISerializerInternal.Deserialize(string data, DeserializationContext context)
+        {
+            return asInterface.Deserialize(data);
         }
     }
 }
