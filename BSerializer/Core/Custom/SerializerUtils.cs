@@ -12,7 +12,7 @@ namespace BSerializer.Core.Custom
         /// </summary>
         /// <param name="methodInfo"></param>
         /// <returns></returns>
-        public static Func<object, object> GetterToDelegate(MethodInfo methodInfo)
+        public static Func<object, object> PropertyGetterToDelegate(MethodInfo methodInfo)
         {
             Type classType = methodInfo.DeclaringType;
             Type returnType = methodInfo.ReturnType;
@@ -45,7 +45,7 @@ namespace BSerializer.Core.Custom
         /// </summary>
         /// <param name="methodInfo"></param>
         /// <returns></returns>
-        public static Action<object, object> SetterToDelegate(MethodInfo methodInfo)
+        public static Action<object, object> PropertySetterToDelegate(MethodInfo methodInfo)
         {
             Type classType = methodInfo.DeclaringType;
             Type paramType = methodInfo.GetParameters()[0].ParameterType;
@@ -76,6 +76,68 @@ namespace BSerializer.Core.Custom
         }
 
         /// <summary>
+        /// Converts a property getter to a delegate
+        /// </summary>
+        /// <param name="fieldInfo"></param>
+        /// <returns></returns>
+        public static Func<object, object> FieldGetterToDelegate(FieldInfo fieldInfo)
+        {
+            Type classType = fieldInfo.DeclaringType;
+            Type returnType = fieldInfo.FieldType;
+
+
+            var obj = Expression.Parameter(typeof(object), "obj");
+
+            var original = Expression.Convert(obj, classType);
+            
+            MemberExpression getField = Expression.MakeMemberAccess(original, fieldInfo);
+
+            var returnExpression =Expression.Convert(getField , typeof(object));
+
+            // wanted result is 
+            // (object)((object)instance).GetterInvoke
+            Expression<Func<object, object>> lambda = Expression.Lambda<Func<object, object>>(
+                returnExpression,
+                 obj
+                );
+
+            return lambda.Compile();
+        }
+
+        /// <summary>
+        /// Converts a property setter to a delegate
+        /// </summary>
+        /// <param name="fieldInfo"></param>
+        /// <returns></returns>
+        public static Action<object, object> FieldSetterToDelegate(FieldInfo fieldInfo)
+        {
+            Type classType = fieldInfo.DeclaringType;
+            Type returnType = fieldInfo.FieldType;
+
+
+            var obj = Expression.Parameter(typeof(object), "obj");
+            var instance = Expression.Parameter(typeof(object), "instance");
+
+            var original = Expression.Convert(instance, classType);
+
+            MemberExpression getField = Expression.MakeMemberAccess(original, fieldInfo);
+
+            var assignExpression = Expression.Assign(getField, Expression.Convert(obj, returnType));
+
+            // wanted result is 
+            // (object)((object)instance).GetterInvoke
+            Expression<Action<object, object>> lambda = Expression.Lambda<Action<object, object>>(
+                assignExpression,
+                instance,
+                 obj
+                );
+
+            return lambda.Compile();
+        }
+
+
+
+        /// <summary>
         /// returns <paramref name="count"/> number of tabs
         /// </summary>
         /// <param name="count"></param>
@@ -88,27 +150,6 @@ namespace BSerializer.Core.Custom
                 sb.Append('\t');
             }
             return sb.ToString();
-        }
-
-        public static string AddTabToLines(string s , int count = 1)
-        {
-            string res = string.Empty;
-            for(int i =0;i < s.Length; i ++)
-            {
-                if(s[i] == '\n')
-                {
-                    res += "\n";
-                    for(int t = 0; t < count;t++)
-                    {
-                        res += '\t';
-                    }
-                }
-                else
-                {
-                    res += s[i];
-                }
-            }
-            return res;
         }
 
     }

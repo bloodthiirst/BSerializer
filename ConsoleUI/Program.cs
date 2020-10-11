@@ -17,17 +17,18 @@ namespace ConsoleUI
             BSerializer<List<IPerson>> listSerializer = new BSerializer<List<IPerson>>();
             BSerializer<Dictionary<int , Person>> dictSerializer = new BSerializer<Dictionary<int, Person>>();
 
-            var parent = new Person() { Address = "Some other place", FirstName = "Parent", LastName = "McParenton", Id = 69, Parent = null };
-            var person = new Person() { Id = 123, FirstName = "Bloodthirst", LastName = "Ketsueki", Address = "Some place", Parent =  parent};
+            var parent = new Person() { age = 32 , Address = "Some other place", FirstName = "Parent", LastName = "McParenton", Id = 69, Parent = null };
+            var person = new Person() { age = 41 , Id = 123, FirstName = "Bloodthirst", LastName = "Ketsueki", Address = "Some place", Parent =  parent};
 
             StreamWriter fileWriter = File.CreateText("D:\\DSerializer - Log.txt");
 
             
 
-            string serializedPerson = serializer.Serialize(person);
+            string serializedPerson = serializer.Serialize(parent);
+
             var deserialize = serializer.Deserialize(serializedPerson);
             
-            string serializedParent = serializer.Serialize(parent);;
+            string serializedParent = serializer.Serialize(person);;
 
             string interfaceSerialized = serializerInterface.Serialize(person);
             IPerson interfaceDiserialized = serializerInterface.Deserialize(interfaceSerialized);

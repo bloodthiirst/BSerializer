@@ -17,9 +17,11 @@ namespace BSerializer.Core.Custom
     {
         private const string NULL = "null";
         public Type CustomType { get; }
-        private IList<ISerializerInternal> Serializers { get; }
-        private IList<Action<object,object>> PropertieSetter { get; set; }
-        private IList<Func<object, object>> PropertieGetter { get; set; }
+        private List<ISerializerInternal> Serializers { get; }
+        private List<Action<object, object>> PropertieSetter { get; set; }
+        private List<Func<object, object>> PropertieGetter { get; set; }
+        public IReadOnlyList<Action<object, object>> PropertieSetters => PropertieSetter;
+        public IReadOnlyList<Func<object, object>> PropertieGetters => PropertieGetter;
         private IList<string> PropertiesName { get; set; }
         private ISerializerInternal asInterface { get; }
         private int PropertiesCount { get; set; }
@@ -30,6 +32,7 @@ namespace BSerializer.Core.Custom
             Serializers = new List<ISerializerInternal>();
             PropertieSetter = new List<Action<object, object>>();
             PropertieGetter = new List<Func<object, object>>();
+
             PropertiesName = new List<string>();
             asInterface = this;
 
@@ -52,9 +55,16 @@ namespace BSerializer.Core.Custom
                 .ToList();
         }
 
+        private List<FieldInfo> GetSerializableFields(Type type)
+        {
+            return type
+                .GetFields()
+                .ToList();
+        }
+
         private void Initialize()
         {
-            // get éproperties
+            // get properties
             List<PropertyInfo> props = GetSerializableProperties(CustomType);
 
             PropertiesCount = props.Count;
@@ -62,8 +72,8 @@ namespace BSerializer.Core.Custom
             for (int i = 0; i < props.Count; i++)
             {
                 PropertyInfo prop = props[i];
-                Func<object, object> getter = SerializerUtils.GetterToDelegate(prop.GetMethod);
-                Action<object, object> setter = SerializerUtils.SetterToDelegate(prop.SetMethod);
+                Func<object, object> getter = SerializerUtils.PropertyGetterToDelegate(prop.GetMethod);
+                Action<object, object> setter = SerializerUtils.PropertySetterToDelegate(prop.SetMethod);
 
 
                 ISerializerInternal serializer = SerializerDependencies.SerializerCollection.GetOrAdd(prop.PropertyType);
@@ -73,9 +83,31 @@ namespace BSerializer.Core.Custom
                 Serializers.Add(serializer);
                 PropertiesName.Add(prop.Name);
             }
+
+            // get fields
+            List<FieldInfo> fields = GetSerializableFields(CustomType);
+
+            var FieldsCount = fields.Count;
+
+            PropertiesCount += FieldsCount;
+
+            for (int i = 0; i < fields.Count; i++)
+            {
+                FieldInfo field = fields[i];
+                Func<object, object> getter = SerializerUtils.FieldGetterToDelegate(field);
+                Action<object, object> setter = SerializerUtils.FieldSetterToDelegate(field);
+
+
+                ISerializerInternal serializer = SerializerDependencies.SerializerCollection.GetOrAdd(field.FieldType);
+
+                PropertieGetter.Add(getter);
+                PropertieSetter.Add(setter);
+                Serializers.Add(serializer);
+                PropertiesName.Add(field.Name);
+            }
         }
 
-        private bool CanDeserialize(IList<INodeData> nodes , out Type type, out Metadata metadata, DeserializationContext context)
+        private bool CanDeserialize(IList<INodeData> nodes, out Type type, out Metadata metadata, DeserializationContext context)
         {
             if (nodes.Count != 1)
             {
@@ -83,8 +115,8 @@ namespace BSerializer.Core.Custom
                 metadata = null;
                 return false;
             }
-            
-            if(nodes[0].Type != NodeType.OBJECT)
+
+            if (nodes[0].Type != NodeType.OBJECT)
             {
                 type = null;
                 metadata = null;
@@ -102,9 +134,9 @@ namespace BSerializer.Core.Custom
 
             INodeData typeNode = nodes[0].SubNodes[1].SubNodes.FirstOrDefault(n => n.Type == NodeType.METADATA);
 
-            CustomSerializer serializer = new CustomSerializer( typeof(Metadata));
+            CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
 
-            metadata = (Metadata) serializer.DeserializeFromNodes(new List<INodeData>() { typeNode } , context);
+            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context);
 
             Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
 
@@ -136,7 +168,7 @@ namespace BSerializer.Core.Custom
                 if (node.Type == Parser.NodeType.SYMBOL)
                     continue;
 
-                object val = Serializers[propIndex].Deserialize(node.Data , context);
+                object val = Serializers[propIndex].Deserialize(node.Data, context);
 
                 PropertieSetter[i].Invoke(instance, val);
 
@@ -146,7 +178,7 @@ namespace BSerializer.Core.Custom
             return instance;
         }
 
-        internal void DeserializeFromNodesInto(IList<INodeData> list, DeserializationContext context , ref object instance)
+        internal void DeserializeFromNodesInto(IList<INodeData> list, DeserializationContext context, ref object instance)
         {
             list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
 
@@ -190,7 +222,7 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        string  ISerializerInternal.Serialize(object obj, SerializationContext context)
+        string ISerializerInternal.Serialize(object obj, SerializationContext context)
         {
             if (obj == null)
                 return EmptySymbol;
@@ -282,7 +314,7 @@ namespace BSerializer.Core.Custom
 
             Type instanceType;
             Metadata metadata;
-            if (!CanDeserialize(list, out instanceType ,out metadata, context))
+            if (!CanDeserialize(list, out instanceType, out metadata, context))
             {
                 return EmptyValue;
             }
@@ -327,7 +359,7 @@ namespace BSerializer.Core.Custom
                 instance = trackedRefInstance;
             }
 
-            DeserializeFromNodesInto(list, context , ref instance);
+            DeserializeFromNodesInto(list, context, ref instance);
 
             context.Register(metadata.ReferenceTracker, instance);
         }
