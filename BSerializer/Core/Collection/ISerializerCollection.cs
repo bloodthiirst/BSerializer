@@ -6,6 +6,8 @@ namespace BSerializer.Core.Collection
 {
     internal interface ISerializerCollection
     {
-        IDictionary<Type,ISerializerInternal> Serializers { get; }
+        ISerializerInternal GetOrAdd(Type type);
+
+        ISerializerInternal GetOrAdd(Type type, ISerializerInternal toAdd);
     }
 }

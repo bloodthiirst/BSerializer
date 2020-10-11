@@ -27,10 +27,7 @@ namespace BSerializer.Core.Custom
             ElementsType = customType.GenericTypeArguments[0];
             CollectionType = customType.GetGenericTypeDefinition();
 
-            if (!SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
-            {
-                SerializerDependencies.SerializerCollection.Serializers.Add(CustomType, this);
-            }
+            SerializerDependencies.SerializerCollection.GetOrAdd(CustomType, this);
         }
 
         public Type Type => CustomType;
@@ -129,7 +126,7 @@ namespace BSerializer.Core.Custom
                     sb.Append($"# [{ index }] #");
                 }
 
-                ISerializerInternal elementSerialiazer = SerializerDependencies.SerializerCollection.Serializers[elementType];
+                ISerializerInternal elementSerialiazer = SerializerDependencies.SerializerCollection.GetOrAdd(elementType);
                 sb.Append('\n');
                 sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
                 string serializedElement = elementSerialiazer.Serialize(element , context);
@@ -175,7 +172,7 @@ namespace BSerializer.Core.Custom
 
             foreach (var el in list)
             {
-                var desElement = SerializerDependencies.SerializerCollection.Serializers[ElementsType].Deserialize(el.Data , context);
+                var desElement = SerializerDependencies.SerializerCollection.GetOrAdd(ElementsType).Deserialize(el.Data , context);
                 cast.Add(desElement);
             }
 

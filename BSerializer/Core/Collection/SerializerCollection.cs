@@ -6,11 +6,35 @@ namespace BSerializer.Core.Collection
 {
     internal class SerializerCollection : ISerializerCollection
     {
-        public IDictionary<Type, ISerializerInternal> Serializers { get; set; }
+        private IDictionary<Type, ISerializerInternal> Serializers { get; set; }
 
         internal  SerializerCollection()
         {
             Serializers = new Dictionary<Type, ISerializerInternal>();
+        }
+
+        public ISerializerInternal GetOrAdd(Type type)
+        {
+            if(Serializers.TryGetValue(type , out var ser))
+            {
+                return ser;
+            }
+
+            ser = SerializerFactory.GetSerializerForType(type);
+
+            return ser;
+        }
+
+        public ISerializerInternal GetOrAdd(Type type , ISerializerInternal toAdd)
+        {
+            if (Serializers.TryGetValue(type, out var ser))
+            {
+                return ser;
+            }
+
+            Serializers.Add(type, toAdd);
+
+            return ser;
         }
     }
 }

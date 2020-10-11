@@ -33,10 +33,7 @@ namespace BSerializer.Core.Custom
             PropertiesName = new List<string>();
             asInterface = this;
 
-            if (! SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
-            {
-                SerializerDependencies.SerializerCollection.Serializers.Add(CustomType, this);
-            }
+            SerializerDependencies.SerializerCollection.GetOrAdd(CustomType, this);
 
             Initialize();
         }
@@ -57,7 +54,7 @@ namespace BSerializer.Core.Custom
 
         private void Initialize()
         {
-            // get properties
+            // get éproperties
             List<PropertyInfo> props = GetSerializableProperties(CustomType);
 
             PropertiesCount = props.Count;
@@ -67,7 +64,9 @@ namespace BSerializer.Core.Custom
                 PropertyInfo prop = props[i];
                 Func<object, object> getter = SerializerUtils.GetterToDelegate(prop.GetMethod);
                 Action<object, object> setter = SerializerUtils.SetterToDelegate(prop.SetMethod);
-                ISerializerInternal serializer = SerializerDependencies.SerializerCollection.Serializers[prop.PropertyType];
+
+
+                ISerializerInternal serializer = SerializerDependencies.SerializerCollection.GetOrAdd(prop.PropertyType);
 
                 PropertieGetter.Add(getter);
                 PropertieSetter.Add(setter);
@@ -147,6 +146,30 @@ namespace BSerializer.Core.Custom
             return instance;
         }
 
+        internal void DeserializeFromNodesInto(IList<INodeData> list, DeserializationContext context , ref object instance)
+        {
+            list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
+
+            int propIndex = 0;
+
+            for (int i = 0; i < PropertiesCount; i++)
+            {
+                INodeData node = list[i];
+
+                if (node.Type == Parser.NodeType.COMMENT)
+                    continue;
+                if (node.Type == Parser.NodeType.SYMBOL)
+                    continue;
+
+                object val = Serializers[propIndex].Deserialize(node.Data, context);
+
+                PropertieSetter[i].Invoke(instance, val);
+
+                propIndex++;
+            }
+        }
+
+
         public object Deserialize(string s)
         {
             return asInterface.Deserialize(s, new DeserializationContext());
@@ -195,37 +218,46 @@ namespace BSerializer.Core.Custom
             sb.Append(newRef);
             sb.Append(">");
             sb.Append('\n');
-            for (int i = 0; i < PropertiesCount - 1; i++)
+
+            if (PropertiesCount != 0)
             {
-                object val = PropertieGetter[i].Invoke(obj);
-
-                
-                string valAsString = Serializers[i].Serialize(val , context);
-
-                if(context.WithPropertiesComments)
+                for (int i = 0; i < PropertiesCount - 1; i++)
                 {
+                    object val = PropertieGetter[i].Invoke(obj);
+
+
+                    string valAsString = Serializers[i].Serialize(val, context);
+
+                    if (context.WithPropertiesComments)
+                    {
+                        sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                        sb.Append($"# { PropertiesName[i] } #");
+                        sb.Append('\n');
+                    }
+
                     sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                    sb.Append($"# { PropertiesName[i] } #");
+                    sb.Append(valAsString);
+                    sb.Append(SerializerConsts.DATA_SEPARATOR);
                     sb.Append('\n');
                 }
-                
-                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                sb.Append(valAsString);
-                sb.Append(SerializerConsts.DATA_SEPARATOR);
-                sb.Append('\n');
+
+                if (context.WithPropertiesComments)
+                {
+                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    sb.Append($"# { PropertiesName[PropertiesCount - 1] } #");
+                    sb.Append('\n');
+                }
+
+                if (PropertiesCount - 1 >= 0)
+                {
+
+                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    object lastVal = PropertieGetter[PropertiesCount - 1].Invoke(obj);
+                    string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal, context);
+                    sb.Append(lastValAsString);
+                }
             }
 
-            if (context.WithPropertiesComments)
-            {
-                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                sb.Append($"# { PropertiesName[PropertiesCount - 1] } #");
-                sb.Append('\n');
-            }
-
-            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-            object lastVal = PropertieGetter[PropertiesCount - 1].Invoke(obj);
-            string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal , context);
-            sb.Append(lastValAsString);
             sb.Append('\n');
             context.TabPadding--;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
@@ -265,6 +297,39 @@ namespace BSerializer.Core.Custom
             context.Register(metadata.ReferenceTracker, result);
 
             return result;
+        }
+
+        public void DeserializeInto(object instance, string data)
+        {
+            var context = new DeserializationContext();
+
+            if (data.Equals(EmptySymbol))
+            {
+                instance = EmptyValue;
+                return;
+            }
+
+
+            MainParser parser = new MainParser();
+            IList<INodeData> list;
+            parser.ExtractNodeData(data, out list);
+
+            Type instanceType;
+            Metadata metadata;
+            if (!CanDeserialize(list, out instanceType, out metadata, context))
+            {
+                instance = EmptyValue;
+                return;
+            }
+
+            if (context.TryGet(metadata.ReferenceTracker, out object trackedRefInstance))
+            {
+                instance = trackedRefInstance;
+            }
+
+            DeserializeFromNodesInto(list, context , ref instance);
+
+            context.Register(metadata.ReferenceTracker, instance);
         }
     }
 }

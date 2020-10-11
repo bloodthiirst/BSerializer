@@ -28,16 +28,13 @@ namespace BSerializer.Core.Custom
         {
             CustomType = customType;
 
-            if (!SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
-            {
-                SerializerDependencies.SerializerCollection.Serializers.Add(CustomType, this);
-            }
+            SerializerDependencies.SerializerCollection.GetOrAdd(CustomType, this);
 
         }
 
-        private bool CanDeserialize(IList<INodeData> nodes , out Type type , out Metadata metadata, DeserializationContext context)
+        private bool CanDeserialize(IList<INodeData> nodes, out Type type, out Metadata metadata, DeserializationContext context)
         {
-            if(nodes[0].Type != NodeType.OBJECT)
+            if (nodes[0].Type != NodeType.OBJECT)
             {
                 type = null;
                 metadata = null;
@@ -90,7 +87,7 @@ namespace BSerializer.Core.Custom
         {
             var concreteType = obj.GetType();
 
-            return SerializerDependencies.SerializerCollection.Serializers[concreteType].Serialize(obj, context);
+            return SerializerDependencies.SerializerCollection.GetOrAdd(concreteType).Serialize(obj, context);
         }
 
         object ISerializerInternal.Deserialize(string data, DeserializationContext context)
@@ -107,14 +104,14 @@ namespace BSerializer.Core.Custom
 
             Type instanceType;
             Metadata metadata;
-            if (!CanDeserialize(list, out instanceType, out metadata, context ))
+            if (!CanDeserialize(list, out instanceType, out metadata, context))
             {
                 return EmptyValue;
             }
 
-            ISerializer concreteSerializer = SerializerDependencies.SerializerCollection.Serializers[instanceType];
+            ISerializer concreteSerializer = SerializerDependencies.SerializerCollection.GetOrAdd(instanceType);
 
-            return ((CustomSerializer)concreteSerializer).DeserializeFromNodes(list , context);
+            return ((CustomSerializer)concreteSerializer).DeserializeFromNodes(list, context);
         }
     }
 }

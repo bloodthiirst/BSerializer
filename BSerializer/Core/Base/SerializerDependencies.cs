@@ -17,11 +17,11 @@ namespace BSerializer.Core.Base
                 if(serializerCollection == null)
                 {
                     serializerCollection = new SerializerCollection();
-                    serializerCollection.Serializers.Add(typeof(bool), new BooleanSerializer());
-                    serializerCollection.Serializers.Add(typeof(float), new FloatSerializer());
-                    serializerCollection.Serializers.Add(typeof(string), new StringSerializer());
-                    serializerCollection.Serializers.Add(typeof(int), new IntSerializer());
-                    serializerCollection.Serializers.Add(typeof(double), new DoubleSerializer());
+                    SerializerCollection.GetOrAdd(typeof(bool), new BooleanSerializer());
+                    SerializerCollection.GetOrAdd(typeof(float), new FloatSerializer());
+                    SerializerCollection.GetOrAdd(typeof(string), new StringSerializer());
+                    SerializerCollection.GetOrAdd(typeof(int), new IntSerializer());
+                    SerializerCollection.GetOrAdd(typeof(double), new DoubleSerializer());
                 }
 
                 return serializerCollection;

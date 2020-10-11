@@ -32,10 +32,7 @@ namespace BSerializer.Core.Custom
 
             CollectionType = customType.GetGenericTypeDefinition();
 
-            if (!SerializerDependencies.SerializerCollection.Serializers.ContainsKey(CustomType))
-            {
-                SerializerDependencies.SerializerCollection.Serializers.Add(CustomType, this);
-            }
+            SerializerDependencies.SerializerCollection.GetOrAdd(CustomType, this);
         }
 
         public Type Type => CustomType;
@@ -141,8 +138,8 @@ namespace BSerializer.Core.Custom
                     sb.Append($"# [{ index }] #");
                 }
 
-                ISerializerInternal keySerialiazer = SerializerDependencies.SerializerCollection.Serializers[keyType];
-                ISerializerInternal valueSerialiazer = SerializerDependencies.SerializerCollection.Serializers[valueType];
+                ISerializerInternal keySerialiazer = SerializerDependencies.SerializerCollection.GetOrAdd(keyType);
+                ISerializerInternal valueSerialiazer = SerializerDependencies.SerializerCollection.GetOrAdd(valueType);
                 sb.Append('\n');
                 sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
 
@@ -220,8 +217,8 @@ namespace BSerializer.Core.Custom
                 var key = kvNodes[0];
                 var value = kvNodes[1];
 
-                var keyElement = SerializerDependencies.SerializerCollection.Serializers[KeyType].Deserialize(key.Data , context);
-                var valElement = SerializerDependencies.SerializerCollection.Serializers[ValueType].Deserialize(value.Data , context);
+                var keyElement = SerializerDependencies.SerializerCollection.GetOrAdd(KeyType).Deserialize(key.Data , context);
+                var valElement = SerializerDependencies.SerializerCollection.GetOrAdd(ValueType).Deserialize(value.Data , context);
 
                 cast.Add(keyElement, valElement);
             }

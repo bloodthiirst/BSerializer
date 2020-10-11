@@ -20,26 +20,7 @@ namespace BSerializer.Core.Custom
 
         public BSerializer()
         {
-            if(typeof(IList).IsAssignableFrom(Type))
-            {
-                customSerializer = new ListSerializer(Type);
-            }
-
-            else if(typeof(IDictionary).IsAssignableFrom(Type))
-            {
-                customSerializer = new DictionarySerializer(Type);
-            }
-
-            else if (Type.IsInterface)
-            {
-                customSerializer = new InterfaceSerializer(Type);
-            }
-            
-            else
-            {
-                customSerializer = new CustomSerializer(Type);
-            }
-
+            customSerializer = SerializerFactory.GetSerializerForType(Type);
             asInterface = this;
             
         }
