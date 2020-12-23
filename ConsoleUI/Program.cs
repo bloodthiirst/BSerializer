@@ -17,7 +17,12 @@ namespace ConsoleUI
             BSerializer<List<IPerson>> listSerializer = new BSerializer<List<IPerson>>();
             BSerializer<Dictionary<int , Person>> dictSerializer = new BSerializer<Dictionary<int, Person>>();
 
-            var parent = new Person() { age = 32 , Address = "Some other place", FirstName = "Parent", LastName = "McParenton", Id = 69, Parent = null };
+            //string test = 
+
+
+            
+            var parent = new Person() { age = 32 , Address = "Some other place", FirstName = "Parent", LastName = "McParenton", Id = 69 };
+            parent.Parent = parent;
             var person = new Person() { age = 41 , Id = 123, FirstName = "Bloodthirst", LastName = "Ketsueki", Address = "Some place", Parent =  parent};
 
             StreamWriter fileWriter = File.CreateText("D:\\DSerializer - Log.txt");
@@ -28,6 +33,7 @@ namespace ConsoleUI
 
             var deserialize = serializer.Deserialize(serializedPerson);
             
+            /*
             string serializedParent = serializer.Serialize(person);;
 
             string interfaceSerialized = serializerInterface.Serialize(person);
@@ -51,6 +57,7 @@ namespace ConsoleUI
             };
 
             string serializedDict = dictSerializer.Serialize(dict);
+            string serializedEmptyDict = dictSerializer.Serialize(new Dictionary<int, Person>());
             Dictionary<int, Person> deserializedDic = dictSerializer.Deserialize(serializedDict);
 
             bool sameRefTest = object.ReferenceEquals(deserializedDic[420], deserializedDic[88]);
@@ -80,8 +87,14 @@ namespace ConsoleUI
 
             fileWriter.Write(serializedDict);
 
-            fileWriter.Dispose();
+            fileWriter.Write("/// Empty Dictionary ///");
+            fileWriter.Write(Environment.NewLine);
+            fileWriter.Write(Environment.NewLine);
 
+            fileWriter.Write(serializedEmptyDict);
+
+            fileWriter.Dispose();
+            */
         }
     }
 }

@@ -107,12 +107,13 @@ namespace BSerializer.Core.Custom
             }
         }
 
-        private bool CanDeserialize(IList<INodeData> nodes, out Type type, out Metadata metadata, DeserializationContext context)
+        private bool CanDeserialize(IList<INodeData> nodes, out Type type, out Metadata metadata, DeserializationContext context, out object cached)
         {
             if (nodes.Count != 1)
             {
                 type = null;
                 metadata = null;
+                cached = null;
                 return false;
             }
 
@@ -120,7 +121,20 @@ namespace BSerializer.Core.Custom
             {
                 type = null;
                 metadata = null;
+                cached = null;
                 return false;
+            }
+
+            INodeData typeNode = nodes[0].SubNodes[1].SubNodes.FirstOrDefault(n => n.Type == NodeType.METADATA);
+
+            CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
+            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context , -1);
+            Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
+
+            if (context.TryGet(metadata.ReferenceTracker, out cached))
+            {
+                type = typeFromString;
+                return true;
             }
 
             List<INodeData> validNodes = nodes[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
@@ -129,20 +143,14 @@ namespace BSerializer.Core.Custom
             {
                 type = null;
                 metadata = null;
+                cached = null;
                 return false;
             }
-
-            INodeData typeNode = nodes[0].SubNodes[1].SubNodes.FirstOrDefault(n => n.Type == NodeType.METADATA);
-
-            CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
-
-            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context);
-
-            Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
 
             if (!CustomType.IsAssignableFrom(typeFromString))
             {
                 type = typeFromString;
+
                 return false;
             }
 
@@ -151,9 +159,16 @@ namespace BSerializer.Core.Custom
 
         }
 
-        internal object DeserializeFromNodes(IList<INodeData> list, DeserializationContext context)
+        internal object DeserializeFromNodes(IList<INodeData> list, DeserializationContext context , int currentIndex)
         {
             object instance = Activator.CreateInstance(CustomType);
+
+            if (currentIndex != -1)
+            {
+                // note : we do this to count for the case where instance A has itself as one of its properties
+                // so we have to preregister the parent to catch it back when we encounter it back as a property
+                context.Register(currentIndex, instance);
+            }
 
             list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
 
@@ -230,14 +245,29 @@ namespace BSerializer.Core.Custom
             if (obj.Equals(EmptyValue))
                 return EmptySymbol;
 
-            if (context.TryGet(obj, out string ser, out int reference))
-            {
-                return ser;
-            }
 
-            StringBuilder sb = new StringBuilder();
 
             ObjectNodeParser objectNodeParser = new ObjectNodeParser();
+            StringBuilder sb = new StringBuilder();
+
+            if (context.TryGet(obj, out int reference))
+            {
+                sb.Append(objectNodeParser.WrappingStart);
+                sb.Append('\n');
+                context.TabPadding++;
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                sb.Append("<");
+                sb.Append(CustomType.FullName);
+                sb.Append(SerializerConsts.DATA_SEPARATOR);
+                sb.Append(reference);
+                sb.Append(">");
+                sb.Append('\n');
+                context.TabPadding--;
+                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                sb.Append(objectNodeParser.WrappingEnd);
+                return sb.ToString();
+            }
+
 
             sb.Append(objectNodeParser.WrappingStart);
             sb.Append('\n');
@@ -314,9 +344,14 @@ namespace BSerializer.Core.Custom
 
             Type instanceType;
             Metadata metadata;
-            if (!CanDeserialize(list, out instanceType, out metadata, context))
+            if (!CanDeserialize(list, out instanceType, out metadata, context , out var cached))
             {
                 return EmptyValue;
+            }
+
+            if(cached != null)
+            {
+                return cached;
             }
 
             if (context.TryGet(metadata.ReferenceTracker, out object instance))
@@ -324,9 +359,7 @@ namespace BSerializer.Core.Custom
                 return instance;
             }
 
-            var result = DeserializeFromNodes(list, context);
-
-            context.Register(metadata.ReferenceTracker, result);
+            var result = DeserializeFromNodes(list, context , metadata.ReferenceTracker);
 
             return result;
         }
@@ -348,7 +381,7 @@ namespace BSerializer.Core.Custom
 
             Type instanceType;
             Metadata metadata;
-            if (!CanDeserialize(list, out instanceType, out metadata, context))
+            if (!CanDeserialize(list, out instanceType, out metadata, context , out object cached))
             {
                 instance = EmptyValue;
                 return;

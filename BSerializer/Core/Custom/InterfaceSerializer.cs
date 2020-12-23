@@ -47,7 +47,7 @@ namespace BSerializer.Core.Custom
 
             CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
 
-            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context);
+            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context , -1);
 
             Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
 
@@ -111,7 +111,7 @@ namespace BSerializer.Core.Custom
 
             ISerializer concreteSerializer = SerializerDependencies.SerializerCollection.GetOrAdd(instanceType);
 
-            return ((CustomSerializer)concreteSerializer).DeserializeFromNodes(list, context);
+            return ((CustomSerializer)concreteSerializer).DeserializeFromNodes(list, context , -1);
         }
     }
 }

@@ -51,7 +51,7 @@ namespace BSerializer.Core.Custom
 
             CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
 
-            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context);
+            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context , -1) ;
 
             Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
 
