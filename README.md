@@ -26,7 +26,7 @@ namespace ConsoleUI.Model
 - One instance example
 ```
 {
-	<ConsoleUI.Model.Person>
+	<ConsoleUI.Model.Person,0>
 	# Id #
 	123,
 	# FirstName #
@@ -37,7 +37,7 @@ namespace ConsoleUI.Model
 	Some place,
 	# Parent #
 	{
-		<ConsoleUI.Model.Person>
+		<ConsoleUI.Model.Person,1>
 		# Id #
 		69,
 		# FirstName #
@@ -58,13 +58,13 @@ with the auto-generated turned off , the result would look like this :
 
 ```
 {
-	<ConsoleUI.Model.Person>
+	<ConsoleUI.Model.Person,0>
 	123,
 	Bloodthirst,
 	Ketsueki,
 	Some place,
 	{
-		<ConsoleUI.Model.Person>
+		<ConsoleUI.Model.Person,1>
 		69,
 		Parent,
 		McParenton,
@@ -77,11 +77,11 @@ with the auto-generated turned off , the result would look like this :
 - List example
 ```
 [
-	<System.Collections.Generic.List`1[[ConsoleUI.Model.IPerson, ConsoleUI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]>
+	<System.Collections.Generic.List`1[[ConsoleUI.Model.IPerson, ConsoleUI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]] , 0>
 
 	# [0] #
 	{
-		<ConsoleUI.Model.Person>
+		<ConsoleUI.Model.Person , 1>
 		# Id #
 		123,
 		# FirstName #
@@ -92,7 +92,7 @@ with the auto-generated turned off , the result would look like this :
 		Some place,
 		# Parent #
 		{
-			<ConsoleUI.Model.Person>
+			<ConsoleUI.Model.Person , 2>
 			# Id #
 			69,
 			# FirstName #
@@ -108,7 +108,7 @@ with the auto-generated turned off , the result would look like this :
 
 	# [1] #
 	{
-		<ConsoleUI.Model.Person>
+		<ConsoleUI.Model.Person , 2>
 		# Id #
 		69,
 		# FirstName #
