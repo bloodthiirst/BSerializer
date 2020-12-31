@@ -4,6 +4,12 @@
 
 - BSerializer is made using  **.NET Standard 2.0** so this should be usable for most C# projects. 
 
+# Features implemented so far
+
+- Support for recursive reference
+
+- Auto-generated comments (with plans to make them custom)
+
 ## Examples:
 
 for the next examples we will use this C# class to demonstrate the serializations result:
@@ -123,3 +129,45 @@ with the auto-generated turned off , the result would look like this :
 ]
 ```
 As you can see , with the auto-generated comments , a small comment indicating the index of the element is added above every elment of the list
+
+- Dictionary example
+
+```
+[
+	<System.Collections.Generic.Dictionary`2[[System.Int32, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[ConsoleUI.Model.Person, ConsoleUI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]],0>
+
+	# [0] #
+	{
+		# key #
+		420,
+		# value #
+		{
+			<ConsoleUI.Model.Person,1>
+			# Id #
+			69,
+			# FirstName #
+			Parent,
+			# LastName #
+			McParenton,
+			# Address #
+			Some other place,
+			# Parent #
+			{
+				<ConsoleUI.Model.Person,1>
+			},
+			# age #
+			32
+		}
+	},	
+
+	# [1] #
+	{
+		# key #
+		88,
+		# value #
+		{
+			<ConsoleUI.Model.Person,1>
+		}
+	}
+]
+```
