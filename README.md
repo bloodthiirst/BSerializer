@@ -10,6 +10,8 @@
 
 - Auto-generated comments (with plans to make them custom)
 
+- Caching optimization
+
 ## Examples:
 
 for the next examples we will use this C# class to demonstrate the serializations result:
