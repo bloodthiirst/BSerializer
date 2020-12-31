@@ -1,5 +1,4 @@
 ﻿using BSerializer.Core.Base;
-using BSerializer.Core.Collection;
 using BSerializer.Core.Nodes;
 using BSerializer.Core.Parser;
 using BSerializer.Core.Parser.SerializationNodes;
@@ -8,44 +7,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BSerializer.Core.Custom
 {
-    public class CustomSerializer : ISerializerInternal
+    public class CustomSerializer : CustomSerializerBase
     {
-        private const string NULL = "null";
-        public Type CustomType { get; }
         private List<ISerializerInternal> Serializers { get; }
         private List<Action<object, object>> PropertieSetter { get; set; }
         private List<Func<object, object>> PropertieGetter { get; set; }
-        public IReadOnlyList<Action<object, object>> PropertieSetters => PropertieSetter;
-        public IReadOnlyList<Func<object, object>> PropertieGetters => PropertieGetter;
         private IList<string> PropertiesName { get; set; }
-        private ISerializerInternal asInterface { get; }
         private int PropertiesCount { get; set; }
-        public CustomSerializer(Type customType)
+        public override INodeParser NodeParser => new ObjectNodeParser();
+        public CustomSerializer(Type customType) : base(customType)
         {
-            CustomType = customType;
-
             Serializers = new List<ISerializerInternal>();
+
             PropertieSetter = new List<Action<object, object>>();
             PropertieGetter = new List<Func<object, object>>();
 
             PropertiesName = new List<string>();
-            asInterface = this;
-
-            SerializerDependencies.SerializerCollection.GetOrAdd(CustomType, this);
 
             Initialize();
         }
-
-        public Type Type => CustomType;
-
-        public string EmptySymbol => NULL;
-
-        public object EmptyValue => null;
 
         private List<PropertyInfo> GetSerializableProperties(Type type)
         {
@@ -107,60 +91,40 @@ namespace BSerializer.Core.Custom
             }
         }
 
-        private bool CanDeserialize(IList<INodeData> nodes, out Type type, out Metadata metadata, DeserializationContext context, out object cached)
+        /// <summary>
+        /// Validates the nodes and returns the instance if it is already in cache
+        /// </summary>
+        /// <param name="nodes"></param>
+        /// <param name="type"></param>
+        /// <param name="metadata"></param>
+        /// <param name="context"></param>
+        /// <param name="cached"></param>
+        /// <returns></returns>
+        internal override bool ValidateNodes(IList<INodeData> nodes)
         {
             if (nodes.Count != 1)
             {
-                type = null;
-                metadata = null;
-                cached = null;
                 return false;
             }
 
             if (nodes[0].Type != NodeType.OBJECT)
             {
-                type = null;
-                metadata = null;
-                cached = null;
                 return false;
-            }
-
-            INodeData typeNode = nodes[0].SubNodes[1].SubNodes.FirstOrDefault(n => n.Type == NodeType.METADATA);
-
-            CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
-            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context , -1);
-            Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
-
-            if (context.TryGet(metadata.ReferenceTracker, out cached))
-            {
-                type = typeFromString;
-                return true;
             }
 
             List<INodeData> validNodes = nodes[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
 
             if (validNodes.Count != PropertiesCount)
             {
-                type = null;
-                metadata = null;
-                cached = null;
                 return false;
             }
 
-            if (!CustomType.IsAssignableFrom(typeFromString))
-            {
-                type = typeFromString;
-
-                return false;
-            }
-
-            type = typeFromString;
             return true;
-
         }
 
-        internal object DeserializeFromNodes(IList<INodeData> list, DeserializationContext context , int currentIndex)
+        internal override object DeserializeFromNodes(IList<INodeData> list, DeserializationContext context , int currentIndex)
         {
+            // prepare the instance to deserialize into
             object instance = Activator.CreateInstance(CustomType);
 
             if (currentIndex != -1)
@@ -193,7 +157,7 @@ namespace BSerializer.Core.Custom
             return instance;
         }
 
-        internal void DeserializeFromNodesInto(IList<INodeData> list, DeserializationContext context, ref object instance)
+        internal void InjectDataIntoInstance(IList<INodeData> list, DeserializationContext context, ref object instance)
         {
             list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
 
@@ -215,61 +179,11 @@ namespace BSerializer.Core.Custom
                 propIndex++;
             }
         }
-
-
-        public object Deserialize(string s)
+        internal override string WriteSerializationData(object obj, SerializationContext context, StringBuilder sb)
         {
-            return asInterface.Deserialize(s, new DeserializationContext());
-        }
 
-        public string Serialize(object obj)
-        {
-            return asInterface.Serialize(obj, new SerializationContext());
-        }
-
-        public bool TryDeserialize(string s, ref object obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool TrySerialize(object obj, ref string s)
-        {
-            throw new NotImplementedException();
-        }
-
-        string ISerializerInternal.Serialize(object obj, SerializationContext context)
-        {
-            if (obj == null)
-                return EmptySymbol;
-
-            if (obj.Equals(EmptyValue))
-                return EmptySymbol;
-
-
-
-            ObjectNodeParser objectNodeParser = new ObjectNodeParser();
-            StringBuilder sb = new StringBuilder();
-
-            if (context.TryGet(obj, out int reference))
-            {
-                sb.Append(objectNodeParser.WrappingStart);
-                sb.Append('\n');
-                context.TabPadding++;
-                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                sb.Append("<");
-                sb.Append(CustomType.FullName);
-                sb.Append(SerializerConsts.DATA_SEPARATOR);
-                sb.Append(reference);
-                sb.Append(">");
-                sb.Append('\n');
-                context.TabPadding--;
-                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                sb.Append(objectNodeParser.WrappingEnd);
-                return sb.ToString();
-            }
-
-
-            sb.Append(objectNodeParser.WrappingStart);
+            // else then we deserialize the data inside
+            sb.Append(NodeParser.WrappingStart);
             sb.Append('\n');
             context.TabPadding++;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
@@ -323,47 +237,19 @@ namespace BSerializer.Core.Custom
             sb.Append('\n');
             context.TabPadding--;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-            sb.Append(objectNodeParser.WrappingEnd);
+            sb.Append(NodeParser.WrappingEnd);
 
             context.SaveValue(newRef, sb.ToString());
 
             return sb.ToString();
         }
 
-        object ISerializerInternal.Deserialize(string data, DeserializationContext context)
-        {
-            if (data.Equals(EmptySymbol))
-            {
-                return EmptyValue;
-            }
-
-
-            MainParser parser = new MainParser();
-            IList<INodeData> list;
-            parser.ExtractNodeData(data, out list);
-
-            Type instanceType;
-            Metadata metadata;
-            if (!CanDeserialize(list, out instanceType, out metadata, context , out var cached))
-            {
-                return EmptyValue;
-            }
-
-            if(cached != null)
-            {
-                return cached;
-            }
-
-            if (context.TryGet(metadata.ReferenceTracker, out object instance))
-            {
-                return instance;
-            }
-
-            var result = DeserializeFromNodes(list, context , metadata.ReferenceTracker);
-
-            return result;
-        }
-
+        /*
+        /// <summary>
+        /// TODO : test this method
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <param name="data"></param>
         public void DeserializeInto(object instance, string data)
         {
             var context = new DeserializationContext();
@@ -379,9 +265,7 @@ namespace BSerializer.Core.Custom
             IList<INodeData> list;
             parser.ExtractNodeData(data, out list);
 
-            Type instanceType;
-            Metadata metadata;
-            if (!CanDeserialize(list, out instanceType, out metadata, context , out object cached))
+            if (!ValidateNodes(list))
             {
                 instance = EmptyValue;
                 return;
@@ -392,9 +276,8 @@ namespace BSerializer.Core.Custom
                 instance = trackedRefInstance;
             }
 
-            DeserializeFromNodesInto(list, context, ref instance);
-
-            context.Register(metadata.ReferenceTracker, instance);
+            InjectDataIntoInstance(list, context, ref instance);
         }
+                */
     }
 }

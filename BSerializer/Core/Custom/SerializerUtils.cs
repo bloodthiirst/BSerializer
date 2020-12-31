@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BSerializer.Core.Nodes;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -7,6 +8,18 @@ namespace BSerializer.Core.Custom
 {
     public class SerializerUtils
     {
+        private static CustomSerializer metadataSerializer;
+        internal static CustomSerializer MetadataSerializer
+        {
+            get
+            {
+                if(metadataSerializer == null)
+                {
+                    metadataSerializer = new CustomSerializer(typeof(Metadata));
+                }
+                return metadataSerializer;
+            }
+        }
         /// <summary>
         /// Converts a property getter to a delegate
         /// </summary>

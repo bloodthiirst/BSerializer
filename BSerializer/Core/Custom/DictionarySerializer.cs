@@ -14,97 +14,35 @@ using System.Text;
 
 namespace BSerializer.Core.Custom
 {
-    public class DictionarySerializer : ISerializerInternal
+    public class DictionarySerializer : CustomSerializerBase
     {
         private const string NULL = "null";
         public Type CollectionType { get; }
         public Type KeyType { get; }
         public Type ValueType { get; }
 
-        public Type CustomType { get; }
-        private ISerializerInternal asInterface => this;
-        public DictionarySerializer(Type customType)
+        public override INodeParser NodeParser => new ArrayNodeParser();
+        public DictionarySerializer(Type customType) : base(customType)
         {
-            CustomType = customType;
-
             KeyType = customType.GenericTypeArguments[0];
             ValueType = customType.GenericTypeArguments[1];
 
             CollectionType = customType.GetGenericTypeDefinition();
-
-            SerializerDependencies.SerializerCollection.GetOrAdd(CustomType, this);
         }
 
-        public Type Type => CustomType;
-
-        public string EmptySymbol => NULL;
-
-        public object EmptyValue => null;
-
-        private bool CanDeserialize(IList<INodeData> nodes, out Type type, out Metadata metadata, DeserializationContext context)
+        internal override bool ValidateNodes(IList<INodeData> nodes)
         {
             if (nodes[0].Type != NodeType.ARRAY)
             {
-                type = null;
-                metadata = null;
                 return false;
             }
 
-            List<INodeData> validNodes = nodes[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
-
-            INodeData typeNode = nodes[0].SubNodes[1].SubNodes.FirstOrDefault(n => n.Type == NodeType.METADATA);
-
-            CustomSerializer serializer = new CustomSerializer(typeof(Metadata));
-
-            metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context , -1);
-
-            Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
-
-            type = typeFromString;
-
             return true;
-
         }
 
-        public object Deserialize(string s)
+        internal override string WriteSerializationData(object obj, SerializationContext context, StringBuilder sb)
         {
-            return asInterface.Deserialize(s, new DeserializationContext());
-        }
-
-        public string Serialize(object obj)
-        {
-            return asInterface.Serialize(obj, new SerializationContext());
-        }
-
-        public bool TryDeserialize(string s, ref object obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool TrySerialize(object obj, ref string s)
-        {
-            throw new NotImplementedException();
-        }
-
-        string ISerializerInternal.Serialize(object obj, SerializationContext context)
-        {
-            if (obj == null)
-                return EmptySymbol;
-
-            if (obj.Equals(EmptyValue))
-                return EmptySymbol;
-
-            if (context.TryGet(obj, out string ser, out int reference))
-            {
-                return ser;
-            }
-
-            StringBuilder sb = new StringBuilder();
-
-            ArrayNodeParser arrayNodeParser = new ArrayNodeParser();
-
-
-            sb.Append(arrayNodeParser.WrappingStart);
+            sb.Append(NodeParser.WrappingStart);
             sb.Append('\n');
             context.TabPadding++;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
@@ -182,7 +120,7 @@ namespace BSerializer.Core.Custom
             sb.Append('\n');
             context.TabPadding--;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-            sb.Append(arrayNodeParser.WrappingEnd);
+            sb.Append(NodeParser.WrappingEnd);
 
 
             context.SaveValue(newRef, sb.ToString());
@@ -190,25 +128,8 @@ namespace BSerializer.Core.Custom
             return sb.ToString();
         }
 
-        object ISerializerInternal.Deserialize(string data, DeserializationContext context)
+        internal override object DeserializeFromNodes(IList<INodeData> list, DeserializationContext context, int currentIndex)
         {
-            if (data.Equals(EmptySymbol))
-            {
-                return EmptyValue;
-            }
-
-
-            MainParser parser = new MainParser();
-            IList<INodeData> list;
-            parser.ExtractNodeData(data, out list);
-
-            Type instanceType;
-            Metadata metadata;
-            if (!CanDeserialize(list, out instanceType, out metadata, context))
-            {
-                return EmptyValue;
-            }
-
             list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
 
             object instance = Activator.CreateInstance(CollectionType.MakeGenericType(KeyType, ValueType));

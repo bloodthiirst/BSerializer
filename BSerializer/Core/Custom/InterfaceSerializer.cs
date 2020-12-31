@@ -109,9 +109,14 @@ namespace BSerializer.Core.Custom
                 return EmptyValue;
             }
 
+            if(context.TryGet(metadata.ReferenceTracker , out object cacheFound))
+            {
+                return cacheFound;
+            }
+
             ISerializer concreteSerializer = SerializerDependencies.SerializerCollection.GetOrAdd(instanceType);
 
-            return ((CustomSerializer)concreteSerializer).DeserializeFromNodes(list, context , -1);
+            return ((CustomSerializer)concreteSerializer).DeserializeFromNodes(list, context , metadata.ReferenceTracker);
         }
     }
 }

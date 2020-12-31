@@ -2,8 +2,13 @@
 
 namespace BSerializer.Core.Base
 {
+    public enum Caching
+    {
+        None, Enabled
+    }
     internal class DeserializationContext
     {
+        public Caching Caching { get; set; }
         private Dictionary<int, object> CachedInstances { get; set; } = new Dictionary<int, object>();
 
         public bool TryGet(int reference, out object instance)
