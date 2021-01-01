@@ -81,7 +81,6 @@ namespace BSerializer.Core.Custom
                 Func<object, object> getter = SerializerUtils.FieldGetterToDelegate(field);
                 Action<object, object> setter = SerializerUtils.FieldSetterToDelegate(field);
 
-
                 ISerializerInternal serializer = SerializerDependencies.SerializerCollection.GetOrAdd(field.FieldType);
 
                 PropertieGetter.Add(getter);
