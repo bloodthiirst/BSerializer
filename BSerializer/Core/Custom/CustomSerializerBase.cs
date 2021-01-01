@@ -83,7 +83,9 @@ namespace BSerializer.Core.Custom
                 sb.Append('\n');
                 context.TabPadding++;
                 sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+
                 WriteHeader(sb, reference);
+                
                 sb.Append('\n');
                 context.TabPadding--;
                 sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
@@ -95,13 +97,15 @@ namespace BSerializer.Core.Custom
             return WriteObjectData(obj, context, sb);
         }
 
-        internal void WriteHeader(StringBuilder sb, int reference)
+        internal StringBuilder WriteHeader(StringBuilder sb, int reference)
         {
             sb.Append("<");
             sb.Append(CustomType.FullName);
             sb.Append(SerializerConsts.DATA_SEPARATOR);
             sb.Append(reference);
             sb.Append(">");
+
+            return sb;
         }
 
         object ISerializerInternal.Deserialize(string data, DeserializationContext context)
@@ -138,7 +142,7 @@ namespace BSerializer.Core.Custom
             }
 
             // else do the normal deserialization
-            object result = ReadObjectData(list, context , metadata.ReferenceTracker);
+            object result = ReadObjectData(list, context, metadata.ReferenceTracker);
 
             return result;
         }

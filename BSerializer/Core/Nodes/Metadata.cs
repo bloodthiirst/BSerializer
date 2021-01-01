@@ -1,5 +1,7 @@
-﻿using System;
+﻿using BSerializer.Core.Collection;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -17,7 +19,7 @@ namespace BSerializer.Core.Nodes
             {
                 if(type == null)
                 {
-                    type = Assembly.GetEntryAssembly().GetType(TypeFullName);
+                    type = SerializerFactory.AllTypes.FirstOrDefault( t => t.FullName.Equals(TypeFullName));
                 }
                 return type;
             }

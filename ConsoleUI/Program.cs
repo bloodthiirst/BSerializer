@@ -48,19 +48,6 @@ namespace ConsoleUI
 
             List<IPerson> deserializedList = listSerializer.Deserialize(serializedList);
 
-
-            Dictionary<int, Person> dict = new Dictionary<int, Person>()
-            {
-                { 420 , parent },
-                { 88 , parent }
-            };
-
-            string serializedDict = dictSerializer.Serialize(dict);
-            string serializedEmptyDict = dictSerializer.Serialize(new Dictionary<int, Person>());
-            Dictionary<int, Person> deserializedDic = dictSerializer.Deserialize(serializedDict);
-
-            bool sameRefTest = object.ReferenceEquals(deserializedDic[420], deserializedDic[88]);
-
             fileWriter.Write("/// List ///");
 
             fileWriter.Write(Environment.NewLine);
@@ -80,20 +67,10 @@ namespace ConsoleUI
             fileWriter.Write(Environment.NewLine);
             fileWriter.Write(Environment.NewLine);
 
-            fileWriter.Write("/// Dictionary ///");
-            fileWriter.Write(Environment.NewLine);
-            fileWriter.Write(Environment.NewLine);
-
-            fileWriter.Write(serializedDict);
 
             fileWriter.Write(Environment.NewLine);
             fileWriter.Write(Environment.NewLine);
 
-            fileWriter.Write("/// Empty Dictionary ///");
-            fileWriter.Write(Environment.NewLine);
-            fileWriter.Write(Environment.NewLine);
-
-            fileWriter.Write(serializedEmptyDict);
 
             fileWriter.Write(Environment.NewLine);
             fileWriter.Write(Environment.NewLine);

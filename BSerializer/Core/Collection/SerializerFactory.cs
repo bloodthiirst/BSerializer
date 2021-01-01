@@ -8,9 +8,25 @@ namespace BSerializer.Core.Collection
 {
     internal static class SerializerFactory
     {
+        private static HashSet<Type> allTypes;
+        internal static HashSet<Type> AllTypes
+        {
+            get
+            {
+                if(allTypes == null)
+                {
+                    allTypes = new HashSet<Type>();
+                }
+
+                return allTypes;
+            }
+        }
+
         internal static ISerializerInternal GetSerializerForType(Type Type)
         {
             ISerializerInternal customSerializer;
+
+            AllTypes.Add(Type);
 
             if (typeof(IList).IsAssignableFrom(Type))
             {

@@ -49,15 +49,13 @@ namespace BSerializer.Core.Custom
 
             metadata = (Metadata)serializer.ReadObjectData(new List<INodeData>() { typeNode }, context , -1);
 
-            Type typeFromString = Assembly.GetEntryAssembly().GetType(metadata.TypeFullName);
-
-            if (!CustomType.IsAssignableFrom(typeFromString))
+            if (!CustomType.IsAssignableFrom(metadata.Type))
             {
-                type = typeFromString;
+                type = metadata.Type;
                 return false;
             }
 
-            type = typeFromString;
+            type = metadata.Type;
             return true;
 
         }

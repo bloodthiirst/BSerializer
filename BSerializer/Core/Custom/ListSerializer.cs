@@ -47,12 +47,10 @@ namespace BSerializer.Core.Custom
             sb.Append('\n');
             context.TabPadding++;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-            sb.Append("<");
-            sb.Append(CustomType.FullName);
-            sb.Append(SerializerConsts.DATA_SEPARATOR);
+
             context.Register(obj, out int newRef);
-            sb.Append(newRef);
-            sb.Append(">");
+
+            WriteHeader(sb, newRef);
             sb.Append('\n');
 
             IEnumerable cast = (IEnumerable)obj;

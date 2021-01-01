@@ -187,11 +187,10 @@ namespace BSerializer.Core.Custom
             sb.Append('\n');
             context.TabPadding++;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-           
+
             context.Register(obj, out int newRef);
 
             WriteHeader(sb, newRef);
-
             sb.Append('\n');
 
             if (PropertiesCount != 0)
@@ -199,7 +198,6 @@ namespace BSerializer.Core.Custom
                 for (int i = 0; i < PropertiesCount - 1; i++)
                 {
                     object val = PropertieGetter[i].Invoke(obj);
-
 
                     string valAsString = Serializers[i].Serialize(val, context);
 
