@@ -7,33 +7,11 @@ namespace BSerializer.Core.Base
         public bool WithPropertiesComments { get; set; } = true;
         public int TabPadding { get; set; }
         private Dictionary<object, int> CachedInstances { get; set; } = new Dictionary<object, int>();
-        private Dictionary<int, string> ReferenceToString { get; set; } = new Dictionary<int, string>();
-
 
         public bool TryGet(object instance, out int reference)
         {
             int index;
             if (!CachedInstances.TryGetValue(instance, out index))
-            {
-                reference = -1;
-                return false;
-            }
-
-            reference = index;
-            return true;
-        }
-
-        public bool TryGet(object instance, out string serialization , out int reference)
-        {
-            int index;
-            if(!CachedInstances.TryGetValue(instance, out index))
-            {
-                serialization = null;
-                reference = -1;
-                return false;
-            }
-
-            if(!ReferenceToString.TryGetValue(index , out serialization))
             {
                 reference = -1;
                 return false;
@@ -55,11 +33,6 @@ namespace BSerializer.Core.Base
 
             reference = index;
             return true;
-        }
-
-        public void SaveValue(int reference , string ser)
-        {
-            ReferenceToString.Add(reference, ser);
         }
     }
 }

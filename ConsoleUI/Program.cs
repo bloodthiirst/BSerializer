@@ -50,10 +50,10 @@ namespace ConsoleUI
 
 
             Dictionary<int, Person> dict = new Dictionary<int, Person>()
-{
-    { 420 , parent },
-    { 88 , parent }
-};
+            {
+                { 420 , parent },
+                { 88 , parent }
+            };
 
             string serializedDict = dictSerializer.Serialize(dict);
             string serializedEmptyDict = dictSerializer.Serialize(new Dictionary<int, Person>());

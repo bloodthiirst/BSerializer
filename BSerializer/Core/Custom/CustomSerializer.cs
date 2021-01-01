@@ -122,7 +122,7 @@ namespace BSerializer.Core.Custom
             return true;
         }
 
-        internal override object DeserializeFromNodes(IList<INodeData> list, DeserializationContext context , int currentIndex)
+        internal override object ReadObjectData(IList<INodeData> list, DeserializationContext context , int currentIndex)
         {
             // prepare the instance to deserialize into
             object instance = Activator.CreateInstance(CustomType);
@@ -179,7 +179,7 @@ namespace BSerializer.Core.Custom
                 propIndex++;
             }
         }
-        internal override string WriteSerializationData(object obj, SerializationContext context, StringBuilder sb)
+        internal override string WriteObjectData(object obj, SerializationContext context, StringBuilder sb)
         {
 
             // else then we deserialize the data inside
@@ -187,12 +187,11 @@ namespace BSerializer.Core.Custom
             sb.Append('\n');
             context.TabPadding++;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-            sb.Append("<");
-            sb.Append(CustomType.FullName);
-            sb.Append(SerializerConsts.DATA_SEPARATOR);
+           
             context.Register(obj, out int newRef);
-            sb.Append(newRef);
-            sb.Append(">");
+
+            WriteHeader(sb, newRef);
+
             sb.Append('\n');
 
             if (PropertiesCount != 0)
@@ -238,8 +237,6 @@ namespace BSerializer.Core.Custom
             context.TabPadding--;
             sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
             sb.Append(NodeParser.WrappingEnd);
-
-            context.SaveValue(newRef, sb.ToString());
 
             return sb.ToString();
         }

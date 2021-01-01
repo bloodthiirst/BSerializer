@@ -12,8 +12,14 @@ namespace BSerializer.Core.Custom
         private static readonly Type GenericType = typeof(T);
         public Type Type => GenericType;
 
+        /// <summary>
+        /// string that reprensents the empty value for this type
+        /// </summary>
         public string EmptySymbol => NULL;
 
+        /// <summary>
+        /// object that reperents the empty value for this type
+        /// </summary>
         public object EmptyValue => default(T);
 
         private ISerializer customSerializer;

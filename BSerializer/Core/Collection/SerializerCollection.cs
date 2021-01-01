@@ -21,7 +21,7 @@ namespace BSerializer.Core.Collection
             }
 
             ser = SerializerFactory.GetSerializerForType(type);
-
+            Serializers.Add(type , ser);
             return ser;
         }
 

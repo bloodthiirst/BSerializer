@@ -42,8 +42,8 @@ namespace BSerializer.Core.Custom
         /// <param name="cached"></param>
         /// <returns></returns>
         internal abstract bool ValidateNodes(IList<INodeData> nodes);
-        internal abstract object DeserializeFromNodes(IList<INodeData> list, DeserializationContext context, int currentIndex);
-        internal abstract string WriteSerializationData(object obj, SerializationContext context, StringBuilder sb);
+        internal abstract object ReadObjectData(IList<INodeData> list, DeserializationContext context, int currentIndex);
+        internal abstract string WriteObjectData(object obj, SerializationContext context, StringBuilder sb);
 
         public object Deserialize(string s)
         {
@@ -83,11 +83,7 @@ namespace BSerializer.Core.Custom
                 sb.Append('\n');
                 context.TabPadding++;
                 sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                sb.Append("<");
-                sb.Append(CustomType.FullName);
-                sb.Append(SerializerConsts.DATA_SEPARATOR);
-                sb.Append(reference);
-                sb.Append(">");
+                WriteHeader(sb, reference);
                 sb.Append('\n');
                 context.TabPadding--;
                 sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
@@ -96,7 +92,16 @@ namespace BSerializer.Core.Custom
             }
 
             // else write the object
-            return WriteSerializationData(obj, context, sb);
+            return WriteObjectData(obj, context, sb);
+        }
+
+        internal void WriteHeader(StringBuilder sb, int reference)
+        {
+            sb.Append("<");
+            sb.Append(CustomType.FullName);
+            sb.Append(SerializerConsts.DATA_SEPARATOR);
+            sb.Append(reference);
+            sb.Append(">");
         }
 
         object ISerializerInternal.Deserialize(string data, DeserializationContext context)
@@ -117,7 +122,7 @@ namespace BSerializer.Core.Custom
 
             CustomSerializer serializer = SerializerUtils.MetadataSerializer;
 
-            Metadata metadata = (Metadata)serializer.DeserializeFromNodes(new List<INodeData>() { typeNode }, context, -1);
+            Metadata metadata = (Metadata)serializer.ReadObjectData(new List<INodeData>() { typeNode }, context, -1);
 
             // check if the object is already in cache
             // if that's the case then return it
@@ -133,7 +138,7 @@ namespace BSerializer.Core.Custom
             }
 
             // else do the normal deserialization
-            object result = DeserializeFromNodes(list, context , metadata.ReferenceTracker);
+            object result = ReadObjectData(list, context , metadata.ReferenceTracker);
 
             return result;
         }
