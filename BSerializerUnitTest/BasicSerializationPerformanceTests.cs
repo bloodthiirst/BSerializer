@@ -8,19 +8,6 @@ namespace BSerializer.UnitTest.Model
     [TestFixture]
     public class BasicSerializationPerformanceTests
     {
-        public BSerializer<Person> Serializer { get; set; }
-        public BSerializer<IPerson> InterfaceSerializer { get; set; }
-        public BSerializer<List<IPerson>> ListSerializer { get; set; }
-        public BSerializer<Dictionary<int, Person>> DictionarySerializer { get; set; }
-        
-        [SetUp]
-        public void Setup()
-        {
-            Serializer = new BSerializer<Person>();
-            InterfaceSerializer = new BSerializer<IPerson>();
-            ListSerializer = new BSerializer<List<IPerson>>();
-            DictionarySerializer = new BSerializer<Dictionary<int, Person>>();
-        }
 
         [Test(Description = "Check BSerializer performance : Recursion Serialization")]
         public void RecursionTest()
@@ -28,9 +15,9 @@ namespace BSerializer.UnitTest.Model
             Person parent = new Person() { age = 32, Address = "Some other place", FirstName = "Parent", LastName = "McParenton", Id = 69 };
             parent.Parent = parent;
 
-            string text = Serializer.Serialize(parent);
+            string text = SetupClass.Serializer.Serialize(parent);
 
-            Person obj = Serializer.Deserialize(text);
+            Person obj = SetupClass.Serializer.Deserialize(text);
 
             Assert.AreEqual(obj, obj.Parent);
         }
@@ -53,9 +40,9 @@ namespace BSerializer.UnitTest.Model
                 { 88 , p }
             };
 
-            string text = DictionarySerializer.Serialize(dict);
+            string text = SetupClass.DictionarySerializer.Serialize(dict);
 
-            Dictionary<int, Person> obj = DictionarySerializer.Deserialize(text);
+            Dictionary<int, Person> obj = SetupClass.DictionarySerializer.Deserialize(text);
         }
 
         [Test(Description = "Check BSerializer performance : Interface Serialization")]
@@ -70,9 +57,9 @@ namespace BSerializer.UnitTest.Model
                 LastName = "McParenton"
             };
 
-            string text = InterfaceSerializer.Serialize(p);
+            string text = SetupClass.InterfaceSerializer.Serialize(p);
 
-            IPerson inter = InterfaceSerializer.Deserialize(text);
+            IPerson inter = SetupClass.InterfaceSerializer.Deserialize(text);
         }
 
         [Test(Description = "Check BSerializer performance : List  Serialization")]
@@ -89,9 +76,9 @@ namespace BSerializer.UnitTest.Model
 
             List<IPerson> people = new List<IPerson>() { p , p , p , p , p };
 
-            string text = ListSerializer.Serialize(people);
+            string text = SetupClass.ListSerializer.Serialize(people);
 
-            List<IPerson> inter = ListSerializer.Deserialize(text);
+            List<IPerson> inter = SetupClass.ListSerializer.Deserialize(text);
         }
     }
 }

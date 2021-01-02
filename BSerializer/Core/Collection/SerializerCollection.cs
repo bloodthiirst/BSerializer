@@ -32,7 +32,7 @@ namespace BSerializer.Core.Collection
                 return ser;
             }
 
-            Serializers[type] =  toAdd;
+            Serializers.Add(type, toAdd);
 
             return toAdd;
         }
