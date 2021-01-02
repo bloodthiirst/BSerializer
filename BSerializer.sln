@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSerializer", "BSerializer\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleUI", "ConsoleUI\ConsoleUI.csproj", "{EBAFBFD0-E51C-48FF-AEA3-C4D7DA74143C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSerializerUnitTest", "BSerializerUnitTest\BSerializerUnitTest.csproj", "{FD084B20-8826-441C-A915-2E849F159CFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSerializerUnitTest", "BSerializerUnitTest\BSerializerUnitTest.csproj", "{FD084B20-8826-441C-A915-2E849F159CFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

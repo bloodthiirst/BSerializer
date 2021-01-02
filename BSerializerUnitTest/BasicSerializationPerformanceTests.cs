@@ -1,17 +1,18 @@
 using BSerializer.Core.Custom;
-using NUnit.Framework;
 using System.Collections.Generic;
+
+using NUnit.Framework;
 
 namespace BSerializer.UnitTest.Model
 {
     [TestFixture]
-    public class BasicSerializationTests
+    public class BasicSerializationPerformanceTests
     {
         public BSerializer<Person> Serializer { get; set; }
         public BSerializer<IPerson> InterfaceSerializer { get; set; }
         public BSerializer<List<IPerson>> ListSerializer { get; set; }
         public BSerializer<Dictionary<int, Person>> DictionarySerializer { get; set; }
-
+        
         [SetUp]
         public void Setup()
         {
@@ -21,7 +22,7 @@ namespace BSerializer.UnitTest.Model
             DictionarySerializer = new BSerializer<Dictionary<int, Person>>();
         }
 
-        [Test(Description = "Check Recursion Serialization")]
+        [Test(Description = "Check BSerializer performance : Recursion Serialization")]
         public void RecursionTest()
         {
             Person parent = new Person() { age = 32, Address = "Some other place", FirstName = "Parent", LastName = "McParenton", Id = 69 };
@@ -31,10 +32,10 @@ namespace BSerializer.UnitTest.Model
 
             Person obj = Serializer.Deserialize(text);
 
-            Assert.AreSame(obj, obj.Parent);
+            Assert.AreEqual(obj, obj.Parent);
         }
 
-        [Test(Description = "Check Dictionary Serialization")]
+        [Test(Description = "Check BSerializer performance : Dictionary Serialization")]
         public void DictionaryTest()
         {
             Person p = new Person()
@@ -55,15 +56,9 @@ namespace BSerializer.UnitTest.Model
             string text = DictionarySerializer.Serialize(dict);
 
             Dictionary<int, Person> obj = DictionarySerializer.Deserialize(text);
-
-            string textTest = DictionarySerializer.Serialize(obj);
-
-            Assert.NotNull(obj);
-            Assert.AreEqual(text, textTest);
-            Assert.AreSame(obj[420], obj[88]);
         }
 
-        [Test(Description = "Check Interface Serialization")]
+        [Test(Description = "Check BSerializer performance : Interface Serialization")]
         public void InterfaceTest()
         {
             Person p = new Person()
@@ -78,12 +73,9 @@ namespace BSerializer.UnitTest.Model
             string text = InterfaceSerializer.Serialize(p);
 
             IPerson inter = InterfaceSerializer.Deserialize(text);
-
-            Assert.NotNull(inter);
-            Assert.IsInstanceOf<Person>(inter);
         }
 
-        [Test(Description = "Check List Serialization")]
+        [Test(Description = "Check BSerializer performance : List  Serialization")]
         public void ListTest()
         {
             Person p = new Person()
@@ -100,16 +92,6 @@ namespace BSerializer.UnitTest.Model
             string text = ListSerializer.Serialize(people);
 
             List<IPerson> inter = ListSerializer.Deserialize(text);
-
-            string textBack = ListSerializer.Serialize(inter);
-
-            Assert.AreEqual(text, textBack);
-
-            Assert.NotNull(inter);
-
-            Assert.NotNull(inter[0]);
-
-            Assert.IsInstanceOf<Person>(inter[0]);
         }
     }
 }

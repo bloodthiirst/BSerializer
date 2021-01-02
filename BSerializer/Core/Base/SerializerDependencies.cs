@@ -16,12 +16,14 @@ namespace BSerializer.Core.Base
             {
                 if(serializerCollection == null)
                 {
-                    serializerCollection = new SerializerCollection();
-                    SerializerCollection.GetOrAdd(typeof(bool), new BooleanSerializer());
-                    SerializerCollection.GetOrAdd(typeof(float), new FloatSerializer());
-                    SerializerCollection.GetOrAdd(typeof(string), new StringSerializer());
-                    SerializerCollection.GetOrAdd(typeof(int), new IntSerializer());
-                    SerializerCollection.GetOrAdd(typeof(double), new DoubleSerializer());
+                    SerializerCollection ser = new SerializerCollection();
+                    ser.Serializers.Add(typeof(bool) , new BooleanSerializer());
+                    ser.Serializers.Add(typeof(float) , new FloatSerializer());
+                    ser.Serializers.Add(typeof(string) , new StringSerializer());
+                    ser.Serializers.Add(typeof(int) ,  new IntSerializer());
+                    ser.Serializers.Add(typeof(double),  new DoubleSerializer());
+
+                    serializerCollection = ser;
                 }
 
                 return serializerCollection;

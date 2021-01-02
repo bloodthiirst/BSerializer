@@ -102,6 +102,7 @@ namespace BSerializer.Core.Custom
 
             Type instanceType;
             Metadata metadata;
+
             if (!CanDeserialize(list, out instanceType, out metadata, context))
             {
                 return EmptyValue;
