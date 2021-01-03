@@ -1,5 +1,4 @@
 ﻿using BSerializer.Core.Base;
-using BSerializer.Core.Collection;
 using BSerializer.Core.Nodes;
 using BSerializer.Core.Parser;
 using BSerializer.Core.Parser.SerializationNodes;
@@ -7,7 +6,6 @@ using Library.Extractors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 namespace BSerializer.Core.Custom

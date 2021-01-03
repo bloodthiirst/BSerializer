@@ -1,20 +1,20 @@
 ﻿using BSerializer.Core.Base;
-using BSerializer.Core.Collection;
 using BSerializer.Core.Nodes;
 using BSerializer.Core.Parser;
 using BSerializer.Core.Parser.SerializationNodes;
-using Library.Extractors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 namespace BSerializer.Core.Custom
 {
     public class ListSerializer : CustomSerializerBase
     {
+        private const string NULL = "0";
+        public override object EmptyValue => null;
+        public override string EmptySymbol => NULL;
         public Type CollectionType { get; }
         public Type ElementsType { get; }
         public override INodeParser NodeParser => ArrayNodeParser.Instance;

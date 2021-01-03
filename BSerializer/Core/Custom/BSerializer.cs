@@ -8,7 +8,7 @@ namespace BSerializer.Core.Custom
     public class BSerializer<T> : ISerializer
     {
         public Caching Caching { get; set; }
-        private const string NULL = "NULL";
+
         private static readonly Type GenericType = typeof(T);
         private static string InternalTypeFullName => GenericType.FullName;
         public string TypeFullName => InternalTypeFullName;
@@ -17,12 +17,12 @@ namespace BSerializer.Core.Custom
         /// <summary>
         /// string that reprensents the empty value for this type
         /// </summary>
-        public string EmptySymbol => NULL;
+        public string EmptySymbol => customSerializer.EmptySymbol;
 
         /// <summary>
         /// object that reperents the empty value for this type
         /// </summary>
-        public object EmptyValue => default(T);
+        public object EmptyValue => customSerializer.EmptyValue;
 
         private ISerializer customSerializer;
 
@@ -31,8 +31,7 @@ namespace BSerializer.Core.Custom
         public BSerializer()
         {
             customSerializer = SerializerFactory.GetSerializerForType(Type);
-            asInterface = this;
-            
+            asInterface = this;         
         }
 
         public T Deserialize(string s)

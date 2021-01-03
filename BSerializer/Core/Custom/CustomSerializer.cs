@@ -2,7 +2,6 @@
 using BSerializer.Core.Nodes;
 using BSerializer.Core.Parser;
 using BSerializer.Core.Parser.SerializationNodes;
-using Library.Extractors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +12,9 @@ namespace BSerializer.Core.Custom
 {
     public class CustomSerializer : CustomSerializerBase
     {
+        private const string NULL = "0";
+        public override object EmptyValue => null;
+        public override string EmptySymbol => NULL;
         private List<ISerializerInternal> Serializers { get; }
         private List<Action<object, object>> PropertieSetter { get; set; }
         private List<Func<object, object>> PropertieGetter { get; set; }

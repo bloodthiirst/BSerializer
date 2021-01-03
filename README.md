@@ -36,22 +36,22 @@ namespace ConsoleUI.Model
 {
 	<ConsoleUI.Model.Person,0>
 	# Id #
-	123,
+	0,
 	# FirstName #
-	Bloodthirst,
+	Will,
 	# LastName #
-	Ketsueki,
+	Smith,
 	# Address #
 	Some place,
 	# Parent #
 	{
 		<ConsoleUI.Model.Person,1>
 		# Id #
-		69,
+		1,
 		# FirstName #
-		Parent,
+		John,
 		# LastName #
-		McParenton,
+		Doe,
 		# Address #
 		Some other place,
 		# Parent #
@@ -67,15 +67,15 @@ with the auto-generated turned off , the result would look like this :
 ```
 {
 	<ConsoleUI.Model.Person,0>
-	123,
-	Bloodthirst,
-	Ketsueki,
+	0,
+	Will,
+	Smith,
 	Some place,
 	{
 		<ConsoleUI.Model.Person,1>
-		69,
-		Parent,
-		McParenton,
+		1,
+		John,
+		Doe,
 		Some other place,
 		null
 	}
@@ -91,22 +91,22 @@ with the auto-generated turned off , the result would look like this :
 	{
 		<ConsoleUI.Model.Person , 1>
 		# Id #
-		123,
+		0,
 		# FirstName #
-		Bloodthirst,
+		Will,
 		# LastName #
-		Ketsueki,
+		Smith,
 		# Address #
 		Some place,
 		# Parent #
 		{
 			<ConsoleUI.Model.Person , 2>
 			# Id #
-			69,
+			1,
 			# FirstName #
-			Parent,
+			John,
 			# LastName #
-			McParenton,
+			Doe,
 			# Address #
 			Some other place,
 			# Parent #
@@ -117,21 +117,15 @@ with the auto-generated turned off , the result would look like this :
 	# [1] #
 	{
 		<ConsoleUI.Model.Person , 2>
-		# Id #
-		69,
-		# FirstName #
-		Parent,
-		# LastName #
-		McParenton,
-		# Address #
-		Some other place,
-		# Parent #
-		null
 	}
 ]
 ```
 As you can see , with the auto-generated comments , a small comment indicating the index of the element is added above every elment of the list
 
+Notice how the value of the second element of the list only contains the metadata part , that's because it's the same instance (reference) as the 'Parent' field of the first element , this helps with many aspects :
+- smaller deserialization output.
+- keeping the same reference on deserialization instead of duplicating the same instance twice or more.
+- The ability to do recursive references without worrying about output being stuck in a loop on deserialization.
 - Dictionary example
 
 ```
@@ -141,16 +135,16 @@ As you can see , with the auto-generated comments , a small comment indicating t
 	# [0] #
 	{
 		# key #
-		420,
+		128,
 		# value #
 		{
 			<ConsoleUI.Model.Person,1>
 			# Id #
-			69,
+			1,
 			# FirstName #
-			Parent,
+			John,
 			# LastName #
-			McParenton,
+			Doe,
 			# Address #
 			Some other place,
 			# Parent #
@@ -158,7 +152,7 @@ As you can see , with the auto-generated comments , a small comment indicating t
 				<ConsoleUI.Model.Person,1>
 			},
 			# age #
-			32
+			34
 		}
 	},	
 
