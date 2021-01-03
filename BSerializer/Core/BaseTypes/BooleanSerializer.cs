@@ -1,6 +1,6 @@
 ﻿namespace BSerializer.BaseTypes
 {
-    public class BooleanSerializer : SerializerBase<bool>
+    public class BooleanSerializer : SerializerPrimitiveBase<bool>
     {
         private const string TRUE = "1";
         private const string FALSE = "0";

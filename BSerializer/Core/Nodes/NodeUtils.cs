@@ -23,6 +23,7 @@ namespace BSerializer.Core.Nodes
         {
             NodeType.COMMENT,
             NodeType.METADATA,
+            NodeType.SYMBOL,
             NodeType.METADATA_CONTENT
         };
 

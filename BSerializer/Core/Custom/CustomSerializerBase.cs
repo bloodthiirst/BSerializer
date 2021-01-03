@@ -16,21 +16,28 @@ namespace BSerializer.Core.Custom
     public abstract class CustomSerializerBase : ISerializerInternal
     {
         private const string NULL = "null";
-        public Type CustomType { get; }
-        private ISerializerInternal asInterface => this;
-        public CustomSerializerBase(Type customType)
-        {
-            CustomType = customType;
+        private Type type { get; set; }
+        public Type Type => type;
 
-            SerializerDependencies.SerializerCollection.GetOrAdd(CustomType, this);
-        }
-
-        public Type Type => CustomType;
 
         public string EmptySymbol => NULL;
 
         public object EmptyValue => null;
         public abstract INodeParser NodeParser { get; }
+
+        private ISerializerInternal asInterface => this;
+
+        private readonly string InternalTypeFullName;
+        public string TypeFullName => InternalTypeFullName;
+
+        public CustomSerializerBase(Type customType)
+        {
+            type = customType;
+            InternalTypeFullName = type.FullName;
+            SerializerDependencies.SerializerCollection.GetOrAdd(type, this);
+        }
+
+
 
         /// <summary>
         /// Validates the nodes and returns the instance if it is already in cache
@@ -43,16 +50,18 @@ namespace BSerializer.Core.Custom
         /// <returns></returns>
         internal abstract bool ValidateNodes(IList<INodeData> nodes);
         internal abstract object ReadObjectData(IList<INodeData> list, DeserializationContext context, int currentIndex);
-        internal abstract string WriteObjectData(object obj, SerializationContext context, StringBuilder sb);
+        internal abstract void WriteObjectData(object obj, SerializationContext context, StringBuilder sb);
 
         public object Deserialize(string s)
         {
-            return asInterface.Deserialize(s, new DeserializationContext());
+            return asInterface.DeserializeInternal(s, new DeserializationContext());
         }
 
         public string Serialize(object obj)
         {
-            return asInterface.Serialize(obj, new SerializationContext());
+            StringBuilder sb = new StringBuilder();
+            asInterface.SerializeInternal(obj, new SerializationContext(), sb);
+            return sb.ToString();
         }
 
         public bool TryDeserialize(string s, ref object obj)
@@ -65,15 +74,19 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        string ISerializerInternal.Serialize(object obj, SerializationContext context)
+        void ISerializerInternal.SerializeInternal(object obj, SerializationContext context, StringBuilder sb)
         {
             if (obj == null)
-                return EmptySymbol;
+            {
+                sb.Append(EmptySymbol);
+                return;
+            }
 
             if (obj.Equals(EmptyValue))
-                return EmptySymbol;
-
-            StringBuilder sb = new StringBuilder();
+            {
+                sb.Append(EmptySymbol);
+                return;
+            }
 
             // if the object is already cached
             // then only put the id and data necessary to get it back from cache on deserialization
@@ -82,33 +95,33 @@ namespace BSerializer.Core.Custom
                 sb.Append(NodeParser.WrappingStart);
                 sb.Append('\n');
                 context.TabPadding++;
-                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                SerializerUtils.GetTabSpaces(context.TabPadding, sb);
 
                 WriteHeader(sb, reference);
-                
+
                 sb.Append('\n');
                 context.TabPadding--;
-                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                 sb.Append(NodeParser.WrappingEnd);
-                return sb.ToString();
+                return;
             }
 
             // else write the object
-            return WriteObjectData(obj, context, sb);
+            WriteObjectData(obj, context, sb);
         }
 
         internal StringBuilder WriteHeader(StringBuilder sb, int reference)
         {
-            sb.Append("<");
-            sb.Append(CustomType.FullName);
+            sb.Append('<');
+            sb.Append(InternalTypeFullName);
             sb.Append(SerializerConsts.DATA_SEPARATOR);
             sb.Append(reference);
-            sb.Append(">");
+            sb.Append('>');
 
             return sb;
         }
 
-        object ISerializerInternal.Deserialize(string data, DeserializationContext context)
+        object ISerializerInternal.DeserializeInternal(string data, DeserializationContext context)
         {
             if (data.Equals(EmptySymbol))
             {

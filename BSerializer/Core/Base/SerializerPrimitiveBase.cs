@@ -1,13 +1,16 @@
 ﻿using BSerializer.Core.Base;
 using System;
+using System.Text;
 
 namespace BSerializer
 {
-    public abstract class SerializerBase<T> : ISerializerInternal
+    public abstract class SerializerPrimitiveBase<T> : ISerializerInternal
     {
         private static readonly Type InternalType = typeof(T);
+        private static readonly string InternalTypeFullName = InternalType.FullName;
         public Type Type => InternalType;
-        private ISerializer asInterface => this;
+        public string TypeFullName => InternalTypeFullName;
+        private ISerializerInternal asInterface => this;
         public abstract string EmptySymbol { get; }
         public abstract object EmptyValue { get; }
 
@@ -46,12 +49,12 @@ namespace BSerializer
 
         public abstract bool TrySerialize(T obj, ref string s);
 
-        string ISerializerInternal.Serialize(object obj, SerializationContext settings)
-        {
-            return asInterface.Serialize(obj);
+        void ISerializerInternal.SerializeInternal(object obj, SerializationContext settings , StringBuilder sb)
+        {    
+            sb.Append(((ISerializer)this).Serialize(obj));
         }
 
-        object ISerializerInternal.Deserialize(string data, DeserializationContext context)
+        object ISerializerInternal.DeserializeInternal(string data, DeserializationContext context)
         {
             return asInterface.Deserialize(data);
         }

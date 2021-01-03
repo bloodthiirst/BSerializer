@@ -1,6 +1,6 @@
 ﻿namespace BSerializer.BaseTypes
 {
-    public class FloatSerializer : SerializerBase<float>
+    public class FloatSerializer : SerializerPrimitiveBase<float>
     {
         private const string EMPTY = "0";
 

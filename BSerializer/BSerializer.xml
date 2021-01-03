@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BSerializer</name>
+    </assembly>
+    <members>
+        <member name="P:BSerializer.Core.Custom.BSerializer`1.EmptySymbol">
+            <summary>
+            string that reprensents the empty value for this type
+            </summary>
+        </member>
+        <member name="P:BSerializer.Core.Custom.BSerializer`1.EmptyValue">
+            <summary>
+            object that reperents the empty value for this type
+            </summary>
+        </member>
+        <member name="M:BSerializer.Core.Custom.CustomSerializer.ValidateNodes(System.Collections.Generic.IList{BSerializer.Core.Parser.SerializationNodes.INodeData})">
+            <summary>
+            Validates the nodes and returns the instance if it is already in cache
+            </summary>
+            <param name="nodes"></param>
+            <param name="type"></param>
+            <param name="metadata"></param>
+            <param name="context"></param>
+            <param name="cached"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BSerializer.Core.Custom.CustomSerializerBase.ValidateNodes(System.Collections.Generic.IList{BSerializer.Core.Parser.SerializationNodes.INodeData})">
+            <summary>
+            Validates the nodes and returns the instance if it is already in cache
+            </summary>
+            <param name="nodes"></param>
+            <param name="type"></param>
+            <param name="metadata"></param>
+            <param name="context"></param>
+            <param name="cached"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BSerializer.Core.Custom.SerializerUtils.PropertyGetterToDelegate(System.Reflection.MethodInfo)">
+            <summary>
+            Converts a property getter to a delegate
+            </summary>
+            <param name="methodInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BSerializer.Core.Custom.SerializerUtils.PropertySetterToDelegate(System.Reflection.MethodInfo)">
+            <summary>
+            Converts a property setter to a delegate
+            </summary>
+            <param name="methodInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BSerializer.Core.Custom.SerializerUtils.FieldGetterToDelegate(System.Reflection.FieldInfo)">
+            <summary>
+            Converts a property getter to a delegate
+            </summary>
+            <param name="fieldInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BSerializer.Core.Custom.SerializerUtils.FieldSetterToDelegate(System.Reflection.FieldInfo)">
+            <summary>
+            Converts a property setter to a delegate
+            </summary>
+            <param name="fieldInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BSerializer.Core.Custom.SerializerUtils.GetTabSpaces(System.Int32,System.Text.StringBuilder)">
+            <summary>
+            returns <paramref name="count"/> number of tabs
+            </summary>
+            <param name="count"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

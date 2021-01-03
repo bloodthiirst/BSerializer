@@ -1,6 +1,7 @@
 ﻿using BSerializer.Core.Nodes;
 using BSerializer.Core.Parser;
 using BSerializer.Core.Parser.SerializationNodes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
@@ -9,9 +10,44 @@ namespace Library.Extractors
 {
     public class MainParser
     {
-        private IList<INodeParser> NodeParsers { get; }
+        private static List<INodeParser> nodeParsers { get; set; }
+        private static IList<INodeParser> NodeParsers
+        {
+            get
+            {
+                if (nodeParsers == null)
+                {
+                    nodeParsers = new List<INodeParser>()
+                    {
+                        ArrayNodeParser.Instance,
+                        ObjectNodeParser.Instance,
+                        MetadataNodeParser.Instance,
+                        CommentNodeParser.Instance,
+                        DataNodeParser.Instance
+                    };
+                }
+
+                return nodeParsers;
+            }
+        }
         private IList<INodeParser> NodePrepocessor { get; }
-        private IList<IParserNoSeparator> NoSeparator { get; }
+        private static List<IParserNoSeparator> noSeparator { get; set; }
+        private static IList<IParserNoSeparator> NoSeparator
+        {
+            get
+            {
+                if (noSeparator == null)
+                {
+                    noSeparator = new List<IParserNoSeparator>()
+                    {
+                        CommentNodeParser.Instance,
+                        MetadataNodeParser.Instance
+                    };
+                }
+
+                return noSeparator;
+            }
+        }
         private List<INodeData> NodeDatas { get; set; }
         private List<INodeData> PreprocessedNodeDatas { get; set; }
 
@@ -25,25 +61,9 @@ namespace Library.Extractors
 
             Brackets = new Stack<string>();
 
-
             NodeDatas = new List<INodeData>();
 
             PreprocessedNodeDatas = new List<INodeData>();
-
-            NoSeparator = new List<IParserNoSeparator>()
-            {
-                new CommentNodeParser(),
-                new MetadataNodeParser()
-            };
-
-            NodeParsers = new List<INodeParser>()
-            {
-                new ArrayNodeParser(),
-                new ObjectNodeParser(),
-                new MetadataNodeParser(),
-                new CommentNodeParser(),
-                new DataNodeParser()
-            };
         }
 
 
@@ -55,19 +75,26 @@ namespace Library.Extractors
 
             stringBuilder.Clear();
 
+            string prop = null;
+
             for (int i = 0; i < data.Length; i++)
             {
                 char currentChar = data[i];
                 bool skip = false;
 
-
+                prop = null;
+                
                 // check for nodes that dont need separators
                 foreach (IParserNoSeparator noSep in NoSeparator)
                 {
                     if (Brackets.Count != 0)
                         continue;
 
-                    string prop = stringBuilder.ToString();
+                    if(prop == null)
+                    {
+                        prop = stringBuilder.ToString();
+
+                    }
 
                     if (noSep.Validate(prop) && Brackets.Count == 0)
                     {
@@ -89,7 +116,7 @@ namespace Library.Extractors
 
 
                 // check for nodes with wrappers
-                foreach(INodeParser withWrapping in NodeParsers)
+                foreach (INodeParser withWrapping in NodeParsers)
                 {
                     if (!withWrapping.HasWrapping)
                         continue;
@@ -101,7 +128,7 @@ namespace Library.Extractors
 
                         if (lastChars.Equals(withWrapping.WrappingEnd))
                         {
-                            if(Brackets.Count == 0)
+                            if (Brackets.Count == 0)
                             {
                                 skip = false;
                                 continue;
@@ -116,7 +143,7 @@ namespace Library.Extractors
                         }
                     }
 
-                    if (i+1 >= withWrapping.WrappingStart.Length)
+                    if (i + 1 >= withWrapping.WrappingStart.Length)
                     {
                         string lastChars = data.Substring(i, withWrapping.WrappingStart.Length);
 
@@ -156,7 +183,7 @@ namespace Library.Extractors
                 }
                 */
 
-                if (currentChar == '\n' || currentChar == '\t' ||currentChar == '\r' || currentChar == '\b')
+                if (currentChar == '\n' || currentChar == '\t' || currentChar == '\r' || currentChar == '\b')
                 {
                     continue;
                 }
@@ -164,7 +191,7 @@ namespace Library.Extractors
                 stringBuilder.Append(currentChar);
             }
 
-            if(stringBuilder.Length == 0)
+            if (stringBuilder.Length == 0)
             {
                 nodes = null;
                 return false;
@@ -186,10 +213,10 @@ namespace Library.Extractors
                 IList<INodeData> nodes = null;
 
                 int position = i - prop.Length;
-                
+
                 string patched;
 
-                if (parser.IsValid(prop, out nodes, position , out patched))
+                if (parser.IsValid(prop, out nodes, position, out patched))
                 {
                     stringBuilder = new StringBuilder(patched);
 
@@ -197,9 +224,9 @@ namespace Library.Extractors
                     {
                         NodeDatas.Add(nodes[n]);
 
-                        foreach (var sub in nodes[n].SubNodes)
+                        for (int i1 = 0; i1 < nodes[n].SubNodes.Count; i1++)
                         {
-
+                            INodeData sub = nodes[n].SubNodes[i1];
                             if (!NodeUtils.IsTerminal(sub.Type))
                             {
                                 IList<INodeData> subnodes;
@@ -220,9 +247,10 @@ namespace Library.Extractors
                         IList<INodeData> restOfNodes = null;
 
                         patchedParser.ExtractNodeData(patched, out restOfNodes);
-                        
-                        foreach(var n in restOfNodes)
+
+                        for (int i1 = 0; i1 < restOfNodes.Count; i1++)
                         {
+                            INodeData n = restOfNodes[i1];
                             NodeDatas.Add(n);
                         }
                     }

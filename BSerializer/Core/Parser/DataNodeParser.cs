@@ -7,6 +7,20 @@ namespace BSerializer.Core.Parser
 {
     public class DataNodeParser : INodeParser
     {
+        private static DataNodeParser _Instance { get; set; }
+        public static DataNodeParser Instance
+        {
+            get
+            {
+                if (_Instance == null)
+                {
+                    _Instance = new DataNodeParser();
+                }
+
+                return _Instance;
+            }
+        }
+
         private static readonly NodeType serializationNodeType = NodeType.DATA;
         public NodeType NodeType => serializationNodeType;
 

@@ -1,6 +1,6 @@
 ﻿namespace BSerializer.BaseTypes
 {
-    public class IntSerializer : SerializerBase<int>
+    public class IntSerializer : SerializerPrimitiveBase<int>
     {
         private const string EMPTy = "0";
 

@@ -1,6 +1,6 @@
 ﻿namespace BSerializer.BaseTypes
 {
-    public class StringSerializer : SerializerBase<string>
+    public class StringSerializer : SerializerPrimitiveBase<string>
     {
         private const string EMPTY = "''";
 

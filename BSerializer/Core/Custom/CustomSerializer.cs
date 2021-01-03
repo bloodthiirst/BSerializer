@@ -18,7 +18,7 @@ namespace BSerializer.Core.Custom
         private List<Func<object, object>> PropertieGetter { get; set; }
         private IList<string> PropertiesName { get; set; }
         private int PropertiesCount { get; set; }
-        public override INodeParser NodeParser => new ObjectNodeParser();
+        public override INodeParser NodeParser => ObjectNodeParser.Instance;
         public CustomSerializer(Type customType) : base(customType)
         {
             Serializers = new List<ISerializerInternal>();
@@ -49,7 +49,7 @@ namespace BSerializer.Core.Custom
         private void Initialize()
         {
             // get properties
-            List<PropertyInfo> props = GetSerializableProperties(CustomType);
+            List<PropertyInfo> props = GetSerializableProperties(Type);
 
             PropertiesCount = props.Count;
 
@@ -69,7 +69,7 @@ namespace BSerializer.Core.Custom
             }
 
             // get fields
-            List<FieldInfo> fields = GetSerializableFields(CustomType);
+            List<FieldInfo> fields = GetSerializableFields(Type);
 
             var FieldsCount = fields.Count;
 
@@ -121,10 +121,10 @@ namespace BSerializer.Core.Custom
             return true;
         }
 
-        internal override object ReadObjectData(IList<INodeData> list, DeserializationContext context , int currentIndex)
+        internal override object ReadObjectData(IList<INodeData> list, DeserializationContext context, int currentIndex)
         {
             // prepare the instance to deserialize into
-            object instance = Activator.CreateInstance(CustomType);
+            object instance = Activator.CreateInstance(Type);
 
             if (currentIndex != -1)
             {
@@ -133,20 +133,34 @@ namespace BSerializer.Core.Custom
                 context.Register(currentIndex, instance);
             }
 
-            list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
+            //list = list[0].SubNodes[1].SubNodes.Where(n => !).ToList();
+
+            list = list[0].SubNodes[1].SubNodes;
 
             int propIndex = 0;
 
+            int nodeIndex = -1;
+
             for (int i = 0; i < PropertiesCount; i++)
             {
-                INodeData node = list[i];
+                while (nodeIndex < list.Count)
+                {
+                    nodeIndex++;
+                    if (!NodeUtils.IgnoreOnDeserialization(list[nodeIndex].Type))
+                    {
+                        break;
+                    }
+                }
 
+                INodeData node = list[nodeIndex];
+
+                /*
                 if (node.Type == Parser.NodeType.COMMENT)
                     continue;
                 if (node.Type == Parser.NodeType.SYMBOL)
                     continue;
-
-                object val = Serializers[propIndex].Deserialize(node.Data, context);
+                */
+                object val = Serializers[propIndex].DeserializeInternal(node.Data, context);
 
                 PropertieSetter[i].Invoke(instance, val);
 
@@ -158,34 +172,45 @@ namespace BSerializer.Core.Custom
 
         internal void InjectDataIntoInstance(IList<INodeData> list, DeserializationContext context, ref object instance)
         {
-            list = list[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
+            list = list[0].SubNodes[1].SubNodes;
 
             int propIndex = 0;
+            int nodeIndex = -1;
 
             for (int i = 0; i < PropertiesCount; i++)
             {
-                INodeData node = list[i];
+                while (nodeIndex < list.Count)
+                {
+                    nodeIndex++;
+                    if (!NodeUtils.IgnoreOnDeserialization(list[nodeIndex].Type))
+                    {
+                        break;
+                    }
+                }
 
+                INodeData node = list[nodeIndex];
+
+                /*
                 if (node.Type == Parser.NodeType.COMMENT)
                     continue;
                 if (node.Type == Parser.NodeType.SYMBOL)
                     continue;
-
-                object val = Serializers[propIndex].Deserialize(node.Data, context);
+                */
+                object val = Serializers[propIndex].DeserializeInternal(node.Data, context);
 
                 PropertieSetter[i].Invoke(instance, val);
 
                 propIndex++;
             }
         }
-        internal override string WriteObjectData(object obj, SerializationContext context, StringBuilder sb)
+        internal override void WriteObjectData(object obj, SerializationContext context, StringBuilder sb)
         {
 
             // else then we deserialize the data inside
             sb.Append(NodeParser.WrappingStart);
             sb.Append('\n');
             context.TabPadding++;
-            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+            SerializerUtils.GetTabSpaces(context.TabPadding, sb);
 
             context.Register(obj, out int newRef);
 
@@ -198,24 +223,26 @@ namespace BSerializer.Core.Custom
                 {
                     object val = PropertieGetter[i].Invoke(obj);
 
-                    string valAsString = Serializers[i].Serialize(val, context);
+
 
                     if (context.WithPropertiesComments)
                     {
-                        sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                        SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                         sb.Append($"# { PropertiesName[i] } #");
                         sb.Append('\n');
                     }
 
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                    sb.Append(valAsString);
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
+
+                    Serializers[i].SerializeInternal(val, context, sb);
+
                     sb.Append(SerializerConsts.DATA_SEPARATOR);
                     sb.Append('\n');
                 }
 
                 if (context.WithPropertiesComments)
                 {
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                     sb.Append($"# { PropertiesName[PropertiesCount - 1] } #");
                     sb.Append('\n');
                 }
@@ -223,19 +250,17 @@ namespace BSerializer.Core.Custom
                 if (PropertiesCount - 1 >= 0)
                 {
 
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                     object lastVal = PropertieGetter[PropertiesCount - 1].Invoke(obj);
-                    string lastValAsString = Serializers[PropertiesCount - 1].Serialize(lastVal, context);
-                    sb.Append(lastValAsString);
+                    Serializers[PropertiesCount - 1].SerializeInternal(lastVal, context, sb);
+
                 }
             }
 
             sb.Append('\n');
             context.TabPadding--;
-            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+            SerializerUtils.GetTabSpaces(context.TabPadding, sb);
             sb.Append(NodeParser.WrappingEnd);
-
-            return sb.ToString();
         }
 
         /*

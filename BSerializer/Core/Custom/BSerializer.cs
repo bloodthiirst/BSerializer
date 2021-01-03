@@ -10,6 +10,8 @@ namespace BSerializer.Core.Custom
         public Caching Caching { get; set; }
         private const string NULL = "NULL";
         private static readonly Type GenericType = typeof(T);
+        private static string InternalTypeFullName => GenericType.FullName;
+        public string TypeFullName => InternalTypeFullName;
         public Type Type => GenericType;
 
         /// <summary>

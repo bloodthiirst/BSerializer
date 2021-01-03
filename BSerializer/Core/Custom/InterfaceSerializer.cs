@@ -23,7 +23,7 @@ namespace BSerializer.Core.Custom
 
         public object EmptyValue => null;
         private ISerializerInternal asInterface => this;
-
+        public string TypeFullName => null;
         public InterfaceSerializer(Type customType)
         {
             CustomType = customType;
@@ -40,8 +40,6 @@ namespace BSerializer.Core.Custom
                 metadata = null;
                 return false;
             }
-
-            List<INodeData> validNodes = nodes[0].SubNodes[1].SubNodes.Where(n => !NodeUtils.IgnoreOnDeserialization(n.Type)).ToList();
 
             INodeData typeNode = nodes[0].SubNodes[1].SubNodes.FirstOrDefault(n => n.Type == NodeType.METADATA);
 
@@ -62,13 +60,15 @@ namespace BSerializer.Core.Custom
 
         public object Deserialize(string s)
         {
-            return asInterface.Deserialize(s, new DeserializationContext());
+            return asInterface.DeserializeInternal(s, new DeserializationContext());
 
         }
 
         public string Serialize(object obj)
         {
-            return asInterface.Serialize(obj, new SerializationContext());
+            var sb = new StringBuilder();
+            asInterface.SerializeInternal(obj, new SerializationContext() , sb);
+            return sb.ToString();
         }
 
         public bool TryDeserialize(string s, ref object obj)
@@ -81,14 +81,14 @@ namespace BSerializer.Core.Custom
             throw new NotImplementedException();
         }
 
-        string ISerializerInternal.Serialize(object obj, SerializationContext context)
+        void ISerializerInternal.SerializeInternal(object obj, SerializationContext context , StringBuilder sb)
         {
             var concreteType = obj.GetType();
 
-            return SerializerDependencies.SerializerCollection.GetOrAdd(concreteType).Serialize(obj, context);
+            SerializerDependencies.SerializerCollection.GetOrAdd(concreteType).SerializeInternal(obj, context , sb);
         }
 
-        object ISerializerInternal.Deserialize(string data, DeserializationContext context)
+        object ISerializerInternal.DeserializeInternal(string data, DeserializationContext context)
         {
             if (data.Equals(EmptySymbol))
             {

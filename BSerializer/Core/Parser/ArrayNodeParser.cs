@@ -5,6 +5,20 @@ namespace BSerializer.Core.Parser
 {
     public class ArrayNodeParser : INodeParser
     {
+        private static ArrayNodeParser _Instance { get; set; }
+        public static ArrayNodeParser Instance
+        {
+            get
+            {
+                if (_Instance == null)
+                {
+                    _Instance = new ArrayNodeParser();
+                }
+
+                return _Instance;
+            }
+        }
+
         private const string START_SYMBOL = "[";
         private const string END_SYMBOL = "]";
         private readonly int START_LENGTH = START_SYMBOL.Length;

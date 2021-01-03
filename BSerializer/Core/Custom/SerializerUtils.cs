@@ -155,14 +155,12 @@ namespace BSerializer.Core.Custom
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        public static string GetTabSpaces(int count)
+        public static void GetTabSpaces(int count , StringBuilder sb)
         {
-            var sb = new StringBuilder();
             for (int i = 0; i < count; i++)
             {
                 sb.Append('\t');
             }
-            return sb.ToString();
         }
 
     }

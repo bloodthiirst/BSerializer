@@ -17,8 +17,8 @@ namespace BSerializer.Core.Custom
     {
         public Type CollectionType { get; }
         public Type ElementsType { get; }
-        public override INodeParser NodeParser => new ArrayNodeParser();
-        public ListSerializer(Type customType ) : base(customType)
+        public override INodeParser NodeParser => ArrayNodeParser.Instance;
+        public ListSerializer(Type customType) : base(customType)
         {
             ElementsType = customType.GenericTypeArguments[0];
             CollectionType = customType.GetGenericTypeDefinition();
@@ -40,13 +40,13 @@ namespace BSerializer.Core.Custom
         }
 
 
-        internal override string WriteObjectData(object obj, SerializationContext context, StringBuilder sb)
+        internal override void WriteObjectData(object obj, SerializationContext context, StringBuilder sb)
         {
             // else then we deserialize the data inside
             sb.Append(NodeParser.WrappingStart);
             sb.Append('\n');
             context.TabPadding++;
-            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+            SerializerUtils.GetTabSpaces(context.TabPadding, sb);
 
             context.Register(obj, out int newRef);
 
@@ -66,15 +66,14 @@ namespace BSerializer.Core.Custom
                 {
                     sb.Append('\n');
                     sb.Append('\n');
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                     sb.Append($"# [{ index }] #");
                 }
 
                 ISerializerInternal elementSerialiazer = SerializerDependencies.SerializerCollection.GetOrAdd(elementType);
                 sb.Append('\n');
-                sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                string serializedElement = elementSerialiazer.Serialize(element, context);
-                sb.Append(serializedElement);
+                SerializerUtils.GetTabSpaces(context.TabPadding, sb);
+                elementSerialiazer.SerializeInternal(element, context, sb);
                 sb.Append(SerializerConsts.DATA_SEPARATOR);
                 index++;
             }
@@ -82,10 +81,8 @@ namespace BSerializer.Core.Custom
             sb.Remove(sb.Length - 1, 1);
             sb.Append('\n');
             context.TabPadding--;
-            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+            SerializerUtils.GetTabSpaces(context.TabPadding, sb);
             sb.Append(NodeParser.WrappingEnd);
-
-            return sb.ToString();
         }
 
         internal override object ReadObjectData(IList<INodeData> list, DeserializationContext context, int currentIndex)
@@ -108,7 +105,7 @@ namespace BSerializer.Core.Custom
             {
                 object desElement = SerializerDependencies.SerializerCollection
                                                             .GetOrAdd(ElementsType)
-                                                            .Deserialize(el.Data, context);
+                                                            .DeserializeInternal(el.Data, context);
                 cast.Add(desElement);
             }
 

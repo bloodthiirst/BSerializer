@@ -6,7 +6,7 @@ namespace BSerializer.Core.Base
 {
     internal interface ISerializerInternal : ISerializer
     {
-        string Serialize(object obj , SerializationContext context);
-        object Deserialize(string data, DeserializationContext context);
+        void SerializeInternal(object obj , SerializationContext context , StringBuilder sb);
+        object DeserializeInternal(string data, DeserializationContext context);
     }
 }

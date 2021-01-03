@@ -1,6 +1,6 @@
 ﻿namespace BSerializer.BaseTypes
 {
-    public class DoubleSerializer : SerializerBase<double>
+    public class DoubleSerializer : SerializerPrimitiveBase<double>
     {
         private const string EMPTY = "0";
 

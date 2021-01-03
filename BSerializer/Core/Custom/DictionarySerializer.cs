@@ -21,7 +21,7 @@ namespace BSerializer.Core.Custom
         public Type KeyType { get; }
         public Type ValueType { get; }
 
-        public override INodeParser NodeParser => new ArrayNodeParser();
+        public override INodeParser NodeParser => ArrayNodeParser.Instance;
         public DictionarySerializer(Type customType) : base(customType)
         {
             KeyType = customType.GenericTypeArguments[0];
@@ -40,13 +40,13 @@ namespace BSerializer.Core.Custom
             return true;
         }
 
-        internal override string WriteObjectData(object obj, SerializationContext context, StringBuilder sb)
+        internal override void WriteObjectData(object obj, SerializationContext context, StringBuilder sb)
         {
             // else then we deserialize the data inside
             sb.Append(NodeParser.WrappingStart);
             sb.Append('\n');
             context.TabPadding++;
-            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+            SerializerUtils.GetTabSpaces(context.TabPadding, sb);
 
             context.Register(obj, out int newRef);
 
@@ -74,14 +74,14 @@ namespace BSerializer.Core.Custom
                     {
                         sb.Append('\n');
                         sb.Append('\n');
-                        sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                        SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                         sb.Append($"# [{ index }] #");
                     }
 
                     ISerializerInternal keySerialiazer = SerializerDependencies.SerializerCollection.GetOrAdd(keyType);
                     ISerializerInternal valueSerialiazer = SerializerDependencies.SerializerCollection.GetOrAdd(valueType);
                     sb.Append('\n');
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
 
                     // kv pair
                     sb.Append('{');
@@ -89,28 +89,26 @@ namespace BSerializer.Core.Custom
                     context.TabPadding++;
 
                     // key
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                     sb.Append("# key #");
                     sb.Append('\n');
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                    string serializedKey = keySerialiazer.Serialize(key, context);
-                    sb.Append(serializedKey);
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
+                    keySerialiazer.SerializeInternal(key, context , sb);
                     sb.Append(SerializerConsts.DATA_SEPARATOR);
                     sb.Append('\n');
 
                     // value
-                    string serializedValue = valueSerialiazer.Serialize(value, context);
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                     sb.Append("# value #");
                     sb.Append('\n');
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
-                    sb.Append(serializedValue);
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
+                    valueSerialiazer.SerializeInternal(value, context,sb);
                     context.TabPadding--;
                     sb.Append('\n');
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
                     sb.Append('}');
                     sb.Append(SerializerConsts.DATA_SEPARATOR);
-                    sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+                    SerializerUtils.GetTabSpaces(context.TabPadding, sb);
 
                     index++;
                 }
@@ -119,10 +117,8 @@ namespace BSerializer.Core.Custom
             }
             sb.Append('\n');
             context.TabPadding--;
-            sb.Append(SerializerUtils.GetTabSpaces(context.TabPadding));
+            SerializerUtils.GetTabSpaces(context.TabPadding, sb);
             sb.Append(NodeParser.WrappingEnd);
-
-            return sb.ToString();
         }
 
         internal override object ReadObjectData(IList<INodeData> list, DeserializationContext context, int currentIndex)
@@ -139,8 +135,8 @@ namespace BSerializer.Core.Custom
                 var key = kvNodes[0];
                 var value = kvNodes[1];
 
-                var keyElement = SerializerDependencies.SerializerCollection.GetOrAdd(KeyType).Deserialize(key.Data, context);
-                var valElement = SerializerDependencies.SerializerCollection.GetOrAdd(ValueType).Deserialize(value.Data, context);
+                var keyElement = SerializerDependencies.SerializerCollection.GetOrAdd(KeyType).DeserializeInternal(key.Data, context);
+                var valElement = SerializerDependencies.SerializerCollection.GetOrAdd(ValueType).DeserializeInternal(value.Data, context);
 
                 cast.Add(keyElement, valElement);
             }
