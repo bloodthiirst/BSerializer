@@ -61,9 +61,9 @@ namespace ConsoleUI.Model
 ```
 
 the parts surrounded by ```#``` are considered comment
-in the example above , the comments are auto-generated using the class's propertie names.
+in the example above , the comments are auto-generated using the class's property names.
 
-With the auto-generated turned off , the result would look like this :
+With the auto-generated comments turned off , the result would look like this :
 
 ```
 {
