@@ -30,7 +30,6 @@ namespace Library.Extractors
                 return nodeParsers;
             }
         }
-        private IList<INodeParser> NodePrepocessor { get; }
         private static List<IParserNoSeparator> noSeparator { get; set; }
         private static IList<IParserNoSeparator> NoSeparator
         {
